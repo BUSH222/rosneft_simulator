@@ -37,11 +37,8 @@ class Tile:
         self.rigconnection = None
         self.spawntile = False
 
-    def __repr__(self) -> str:
-        return str(self.price)
-
     def can_place_pipe(self):
-        return (not self.hasrig) and (not self.pipetype) and self.isowned and self.issurveyed
+        return (not self.hasrig) and (not self.pipetype)  # and self.isowned and self.issurveyed
 
     def can_place_rig(self):
         return (not self.hasrig) and (not self.pipetype) and self.isowned\
@@ -98,6 +95,12 @@ class Tile:
             self.rigtype = None
             self.rigconnection = None
 
+    def draw(self):
+        if self.haspipe:
+            return (255, 255, 0)
+        else:
+            return (0, 255, 255)
+
 
 class TileGrid:
     def __init__(self, sizex, sizey) -> None:
@@ -135,7 +138,7 @@ class TileGrid:
                 elif self.grid[y][x].oiltype is None and random.random() < self.simple_oil_probability:
                     self.grid[y][x].oiltype = 'simple'
 
-    def place_pipe(self, x_origin, y_origin, x_dest, y_dest, preview):
+    def place_pipes(self, x_origin, y_origin, x_dest, y_dest, preview):
 
         nearbydestpipes = []
         if self.grid[x_dest-1][y_dest].pipetype is not None:
@@ -169,7 +172,9 @@ class TileGrid:
 
         potentialpipes = []
         current_point = [x_origin, y_origin]
+        print(initialdirection)
         while current_point != turn:
+            print(current_point)
             if initialdirection == 'x':
                 if current_point == [x_origin, y_origin]:
                     potentialpipes.append([self.grid[current_point[0]][current_point[1]], [guaranteedxpipe]])
@@ -188,6 +193,7 @@ class TileGrid:
         initialdirection = 'y' if initialdirection == 'x' else 'x'
 
         while current_point != [x_dest, y_dest]:
+            print(current_point)
             if initialdirection == 'x':
                 if current_point == turn:
                     potentialpipes.append([self.grid[current_point[0]][current_point[1]],
@@ -195,7 +201,7 @@ class TileGrid:
                 else:
                     potentialpipes.append([self.grid[current_point[0]][current_point[1]],
                                            [guaranteedypipe, antiypipe]])
-                current_point = [current_point[0], current_point[1]+ystep]
+                current_point = [current_point[0]+xstep, current_point[1]]
             else:
                 if current_point == turn:
                     potentialpipes.append([self.grid[current_point[0]][current_point[1]],
@@ -203,12 +209,12 @@ class TileGrid:
                 else:
                     potentialpipes.append([self.grid[current_point[0]][current_point[1]],
                                            [guaranteedxpipe, antixpipe]])
-                current_point = [current_point[0]+xstep, current_point[1]]
+                current_point = [current_point[0], current_point[1]+ystep]
 
-        potentialpipes.append(self.grid[x_dest, y_dest], [antixpipe])
+        potentialpipes.append([self.grid[x_dest][y_dest], [antixpipe]])
 
-        for tile in potentialpipes:
-            tile.place_pipe()
+        for item in potentialpipes:
+            item[0].place_pipe(self.grid, item[1])
 
     def place_rig(self, x, y, preview=False):
         tile = self.grid[x][y]
