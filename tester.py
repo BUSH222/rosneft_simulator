@@ -1,6 +1,5 @@
 import pygame
 import sys
-import random
 import helper
 
 # Initialize pygame
@@ -22,11 +21,13 @@ FPS = 50
 screen = pygame.display.set_mode(WINDOW_SIZE)
 pygame.display.set_caption("Tile Grid")
 
+
 def draw_grid():
     for x in range(GRID_SIZE):
         for y in range(GRID_SIZE):
             rect = pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
             pygame.draw.rect(screen, GRAY, rect, 1)
+
 
 def get_tile_coordinates(mouse_pos):
     x, y = mouse_pos
@@ -34,14 +35,15 @@ def get_tile_coordinates(mouse_pos):
     tile_y = y // TILE_SIZE
     return tile_x, tile_y
 
+
 def random_color():
     return (250, 250, 250)
     # return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
 
+
 def main():
+    cnt = 0
     grid = helper.TileGrid(10, 10)
-
-
     coords1 = [0, 0]
     coords2 = [0, 0]
     while True:
@@ -58,7 +60,7 @@ def main():
                     tile_x, tile_y = get_tile_coordinates(pygame.mouse.get_pos())
                     coords2 = [tile_x, tile_y]
                     print(coords2)
-                    grid.place_pipes(coords1[0], coords1[1], coords2[0], coords2[1], preview=False)
+                    grid.place_pipes(coords1[1], coords1[0], coords2[1], coords2[0], preview=False)
 
         screen.fill(WHITE)
         draw_grid()
@@ -66,11 +68,16 @@ def main():
         # Draw colored tiles
         for i, x in enumerate(grid.grid):
             for j, y in enumerate(x):
-                rect = pygame.Rect(i*TILE_SIZE, j*TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                rect = pygame.Rect(j*TILE_SIZE, i*TILE_SIZE, TILE_SIZE, TILE_SIZE)
                 pygame.draw.rect(screen, y.draw(), rect)
 
-        pygame.display.flip()
+        if cnt % 50 == 0:
+            grid.validate_all()
+
+        pygame.display.update()
         clock.tick(FPS)
+        cnt += 1
+
 
 if __name__ == "__main__":
     main()
