@@ -44,17 +44,24 @@ class Tile:
         # return str(self.connection)
 
     def can_place_pipe(self):
-        return (not self.hasrig) and (not self.pipetype)  # and self.isowned and self.issurveyed
+        """Whether or not a pipe can be placed on this segment"""
+        return (not self.hasrig) and (not self.haspipe)  # and self.isowned and self.issurveyed
 
     def can_place_rig(self):
-        return (not self.hasrig) and (not self.pipetype) and self.isowned\
-            and self.issurveyed and self.oiltype == 'central'
+        """Whether or not a rig can be placed on this segment"""
+        return (not self.hasrig) and (not self.haspipe)  # and self.isowned and self.issurveyed
 
     def place_pipe(self):
+        """Place a pipe on the tile"""
         if not self.can_place_pipe():
             return False
         self.haspipe = True
         self.pipetype = 'basic'
+
+    def delete_pipe(self):
+        """Delete the pipe on the tile"""
+        self.haspipe = False
+        self.pipetype = None
 
     def place_rig(self, grid):
 
@@ -68,31 +75,30 @@ class Tile:
         """Validate if this segment's tile data is in order"""
 
         # validate grid placement
-        if self.haspipe:
+        if self.haspipe or self.hasrig:
             nearbypipes = []
             if self.y-1 >= 0:
-                if grid[self.y-1][self.x].haspipe:
+                if grid[self.y-1][self.x].haspipe or grid[self.y-1][self.x].hasrig:
                     nearbypipes.append('u')
             if self.y+1 < sizex:
-                if grid[self.y+1][self.x].haspipe:
+                if grid[self.y+1][self.x].haspipe or grid[self.y+1][self.x].hasrig:
                     nearbypipes.append('d')
             if self.x-1 >= 0:
-                if grid[self.y][self.x-1].haspipe:
+                if grid[self.y][self.x-1].haspipe or grid[self.y][self.x-1].hasrig:
                     nearbypipes.append('l')
             if self.x+1 < sizey:
-                if grid[self.y][self.x+1].haspipe:
+                if grid[self.y][self.x+1].haspipe or grid[self.y][self.x+1].hasrig:
                     nearbypipes.append('r')
             self.connection = ''.join(sorted(nearbypipes))
             # for s in grid:
             #    print(*s)
             print(self.x, self.y, self.connection)
-        elif self.hasrig:
-            pass
         else:
             self.connection = None
             self.pipetype = None
 
     def draw(self):
+        """This function handles the colors of the tile and the icons"""
         if self.pipepreviewtype == 'valid':
             return (0, 255, 0)
         elif self.pipepreviewtype == 'invalid':
@@ -140,7 +146,13 @@ class TileGrid:
                 elif self.grid[y][x].oiltype is None and random.random() < self.simple_oil_probability:
                     self.grid[y][x].oiltype = 'simple'
 
-    def place_pipes(self, x_origin, y_origin, x_dest, y_dest, preview):
+    def place_pipes(self, x_origin, y_origin, x_dest, y_dest, preview, delete=False):
+        """Function for placing a pipe in a triangle side shape, where:
+        starter point is x_origin, y_origin
+        end point is x_dest, y_dest
+        
+        preview doesn't actually place the pipes, only turns preview mode on.
+        delete - delete the pipe if True"""
         if abs(x_dest-x_origin) > abs(y_dest-y_origin):
             initialdirection = 'x'
             turn = [x_dest, y_origin]
@@ -187,6 +199,10 @@ class TileGrid:
                 current_point = [current_point[0], current_point[1]+ystep]
 
         potentialpipes.append(self.grid[x_dest][y_dest])
+        if delete is True:
+            for item in potentialpipes:
+                item.delete_pipe()
+            return True
         if not preview:
             if not all([tile.can_place_pipe() for tile in potentialpipes]):
                 return False
@@ -201,25 +217,29 @@ class TileGrid:
                     item.pipepreviewtype = 'invalid'
 
     def place_rig(self, x, y, preview=False):
+        """Function for placing a rig on the tile:
+        x, y are rig coordinates
+        preview - if preview mode is on"""
         tile = self.grid[x][y]
 
         if tile.can_place_rig() and preview:
-            tile.rigtype = 'building'
+            tile.rigpreviewtype = 'valid'
         elif tile.can_place_rig() and not preview:
             tile.hasrig = True
         elif not tile.can_place_rig() and preview:
-            tile.rigtype = 'invalid'
+            tile.rigpreviewtype = 'invalid'
 
     def validate_all(self):
+        """Validate and form connections between every single pipe"""
         for row in self.grid:
             for tile in row:
                 tile.validate(self.grid, self.sizex, self.sizey)
-    
+
     def clear_previews(self):
+        """Clear all previews"""
         for row in self.grid:
             for tile in row:
                 tile.pipepreviewtype = None
-    
 
 
 if __name__ == '__main__':
