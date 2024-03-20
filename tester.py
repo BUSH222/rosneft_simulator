@@ -51,17 +51,33 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left mouse button
                     tile_x, tile_y = get_tile_coordinates(pygame.mouse.get_pos())
                     coords1 = [tile_x, tile_y]
-                    print(coords1)
                 elif event.button == 3:
+                    tile_x, tile_y = get_tile_coordinates(pygame.mouse.get_pos())
+                    coords3 = [tile_x, tile_y]
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
                     tile_x, tile_y = get_tile_coordinates(pygame.mouse.get_pos())
                     coords2 = [tile_x, tile_y]
                     print(coords2)
                     grid.place_pipes(coords1[1], coords1[0], coords2[1], coords2[0], preview=False)
-
+                if event.button == 3:
+                    tile_x, tile_y = get_tile_coordinates(pygame.mouse.get_pos())
+                    coords4 = [tile_x, tile_y]
+                    print(coords4)
+                    grid.place_pipes(coords3[1], coords3[0], coords4[1], coords4[0], preview=True)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    grid.clear_previews()
+                if event.key == pygame.K_0:
+                    grid.validate_all()
+                if event.key == pygame.K_1:
+                    for s in grid.grid:
+                        print(*s)
         screen.fill(WHITE)
         draw_grid()
 
@@ -71,7 +87,7 @@ def main():
                 rect = pygame.Rect(j*TILE_SIZE, i*TILE_SIZE, TILE_SIZE, TILE_SIZE)
                 pygame.draw.rect(screen, y.draw(), rect)
 
-        if cnt % 50 == 0:
+        if cnt % 50 == 80: # change later, temp
             grid.validate_all()
 
         pygame.display.update()

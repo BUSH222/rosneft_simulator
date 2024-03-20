@@ -17,8 +17,8 @@ class Tile:
         hasrig - if the segment has a rig
         rigtype can be None, 'basic'
         spawntile - purely cosmetic - if the tile is spawn
-        pipepreviewtype = 'valid', 'invalid'
-        rigpreviewtype = 'valid', 'invalid'
+        pipepreviewtype = 'valid', 'invalid', None
+        rigpreviewtype = 'valid', 'invalid', None
         """
         self.x = x
         self.y = y
@@ -40,8 +40,8 @@ class Tile:
         self.rigpreviewtype = None
 
     def __repr__(self) -> str:
-        # return str(self.haspipe)
-        return str(self.connection)
+        return str(self.haspipe)
+        # return str(self.connection)
 
     def can_place_pipe(self):
         return (not self.hasrig) and (not self.pipetype)  # and self.isowned and self.issurveyed
@@ -70,16 +70,16 @@ class Tile:
         # validate grid placement
         if self.haspipe:
             nearbypipes = []
-            if self.x-1 >= 0:
+            if self.y-1 >= 0:
                 if grid[self.y-1][self.x].haspipe:
                     nearbypipes.append('u')
-            if self.x+1 < sizex:
+            if self.y+1 < sizex:
                 if grid[self.y+1][self.x].haspipe:
                     nearbypipes.append('d')
-            if self.y-1 >= 0:
+            if self.x-1 >= 0:
                 if grid[self.y][self.x-1].haspipe:
                     nearbypipes.append('l')
-            if self.y+1 < sizey:
+            if self.x+1 < sizey:
                 if grid[self.y][self.x+1].haspipe:
                     nearbypipes.append('r')
             self.connection = ''.join(sorted(nearbypipes))
@@ -93,10 +93,15 @@ class Tile:
             self.pipetype = None
 
     def draw(self):
-        if self.haspipe:
-            return (255, 255, 0)
+        if self.pipepreviewtype == 'valid':
+            return (0, 255, 0)
+        elif self.pipepreviewtype == 'invalid':
+            return (255, 0, 0)
         else:
-            return (0, 255, 255)
+            if self.haspipe:
+                return (200, 200, 200)
+            else:
+                return (0, 0, 0)
 
 
 class TileGrid:
@@ -188,13 +193,12 @@ class TileGrid:
             for item in potentialpipes:
                 item.place_pipe()
         else:
-            allvalid = True
-            if not all([tile.can_place_pipe() for tile in potentialpipes]):
-                allvalid = False
-            if allvalid:
+            if all([tile.can_place_pipe() for tile in potentialpipes]):
                 for item in potentialpipes:
-                    item.place_pipe()
-
+                    item.pipepreviewtype = 'valid'
+            else:
+                for item in potentialpipes:
+                    item.pipepreviewtype = 'invalid'
 
     def place_rig(self, x, y, preview=False):
         tile = self.grid[x][y]
@@ -210,6 +214,12 @@ class TileGrid:
         for row in self.grid:
             for tile in row:
                 tile.validate(self.grid, self.sizex, self.sizey)
+    
+    def clear_previews(self):
+        for row in self.grid:
+            for tile in row:
+                tile.pipepreviewtype = None
+    
 
 
 if __name__ == '__main__':
