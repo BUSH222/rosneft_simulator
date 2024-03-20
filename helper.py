@@ -77,7 +77,6 @@ class Tile:
                 if grid[self.y+1][self.x].haspipe:
                     nearbypipes.append('d')
             if self.y-1 >= 0:
-                print('bruh')
                 if grid[self.y][self.x-1].haspipe:
                     nearbypipes.append('l')
             if self.y+1 < sizey:
