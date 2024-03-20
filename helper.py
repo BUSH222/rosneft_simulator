@@ -9,14 +9,16 @@ class Tile:
         """
         x, y - coordinates
         isowned, issurveyed, price - arguments for buying things and visibility of oil, upkeep will be calculated later
-        pipetype - can be None, 'building', 'invalid', 'basic'
+        pipetype - can be None, 'basic'
         None - no pipe, building - pipe under construction, basic - basic pipe, export - pipe is an export pipe.
         connection - connections of the pipe if exists (u, d, r, l, and all combinations of those, sorted) or None
         oiltype - can be None if no oil is present, 'simple' if oil is present but not central or 'central'
         oilquantity - only matters if oiltype is central
         hasrig - if the segment has a rig
-        rigtype can be None, 'building', 'invalid', 'basic'
+        rigtype can be None, 'basic'
         spawntile - purely cosmetic - if the tile is spawn
+        pipepreviewtype = 'valid', 'invalid'
+        rigpreviewtype = 'valid', 'invalid'
         """
         self.x = x
         self.y = y
@@ -34,6 +36,8 @@ class Tile:
         self.hasrig = False
         self.rigtype = None
         self.spawntile = False
+        self.pipepreviewtype = None
+        self.rigpreviewtype = None
 
     def __repr__(self) -> str:
         # return str(self.haspipe)
@@ -179,10 +183,19 @@ class TileGrid:
                 current_point = [current_point[0], current_point[1]+ystep]
 
         potentialpipes.append(self.grid[x_dest][y_dest])
-        if not all([tile.can_place_pipe() for tile in potentialpipes]):
-            return False
-        for item in potentialpipes:
-            item.place_pipe()
+        if not preview:
+            if not all([tile.can_place_pipe() for tile in potentialpipes]):
+                return False
+            for item in potentialpipes:
+                item.place_pipe()
+        else:
+            allvalid = True
+            if not all([tile.can_place_pipe() for tile in potentialpipes]):
+                allvalid = False
+            if allvalid:
+                for item in potentialpipes:
+                    item.place_pipe()
+
 
     def place_rig(self, x, y, preview=False):
         tile = self.grid[x][y]
