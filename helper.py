@@ -111,6 +111,7 @@ class Tile:
 
 
 class TileGrid:
+    """Class for handling a 2d list of tiles - the playing field"""
     def __init__(self, sizex, sizey) -> None:
         self.sizex = sizex
         self.sizey = sizey
@@ -150,7 +151,6 @@ class TileGrid:
         """Function for placing a pipe in a triangle side shape, where:
         starter point is x_origin, y_origin
         end point is x_dest, y_dest
-        
         preview doesn't actually place the pipes, only turns preview mode on.
         delete - delete the pipe if True"""
         if abs(x_dest-x_origin) > abs(y_dest-y_origin):
@@ -240,6 +240,27 @@ class TileGrid:
         for row in self.grid:
             for tile in row:
                 tile.pipepreviewtype = None
+
+
+class Game:
+    def __init__(self, budget) -> None:
+        self.budget = budget
+        self.grid = TileGrid(10, 10)
+        self.exportpipecoords = [5, 0]
+        self.exportpipedirection = 'r'
+        self.exportpipelength = 2
+
+    def generate_everything(self):
+        pass
+
+    def calculate_total_exports(self):
+        pass
+
+    def buy_tiles(self, x_origin, y_origin, x_dest, y_dest):
+        pass
+
+    def survey_tiles(self, x_origin, y_origin, x_dest, y_dest):
+        pass
 
 
 if __name__ == '__main__':

@@ -87,7 +87,7 @@ def main():
                 rect = pygame.Rect(j*TILE_SIZE, i*TILE_SIZE, TILE_SIZE, TILE_SIZE)
                 pygame.draw.rect(screen, y.draw(), rect)
 
-        if cnt % 50 == 80: # change later, temp
+        if cnt % 50 == 80:  # change later, temp
             grid.validate_all()
 
         pygame.display.update()
