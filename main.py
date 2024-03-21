@@ -13,8 +13,8 @@ pygame.display.set_caption('Rosneft simulator')
 # Загрузка изображений
 background = pygame.image.load('background.jpg')
 
-map_image = pygame.image.load('map2.jpg')
-map_position = (0, 0)  # Initial position of the map
+map_image = pygame.image.load('map3.jpg')
+map_position = (0, 115)  # Initial position of the map
 map_speed = 5  # Speed at which the map moves
 
 game = helper.TileGrid(165, 100)
@@ -65,12 +65,22 @@ class Button:  # Класс для кнопки
                 self.finxy[0] //= 10
                 self.finxy[1] //= 10  # update with proper coords
                 print(self.finxy)
-                self.grid.place_pipes(self.initialxy[1], self.initialxy[0], self.finxy[1], self.finxy[0], preview = False)
+                res = self.grid.place_pipes(self.initialxy[1]+map_position[1], self.initialxy[0]+map_position[0],
+                                            self.finxy[1]+map_position[1], self.finxy[0]+map_position[0],
+                                            preview=False)
+                if res is True:
+                    self.initialxy = []
+                    self.finxy = []
+                    self.grid.clear_previews()
+
         if self.toggled and self.initialxy != [] and self.toggledaction == 'build_pipes':
+            self.grid.clear_previews()
             self.finxy = list(pygame.mouse.get_pos())  # update with proper coords
             self.finxy[0] //= 10
             self.finxy[1] //= 10
-            self.grid.place_pipes(self.initialxy[1], self.initialxy[0], self.finxy[1], self.finxy[0], preview = True)
+            res = self.grid.place_pipes(self.initialxy[1]+map_position[1], self.initialxy[0]+map_position[0],
+                                        self.finxy[1]+map_position[1], self.finxy[0]+map_position[0],
+                                        preview=True)
 
 
 # Класс для поля
@@ -91,10 +101,10 @@ def start_new_game():
     screen_size = pygame.display.get_surface().get_size()
     width, height = screen_size
     # Создание полей
-    field1 = Field(0, 0, 1920, 100, (200, 200, 200))
+    field1 = Field(0, 0, 1920, 100, (222, 184, 135))
     field2 = Field(0, height // 11, width, 1920, (150, 150, 150))
-    field3_right = Field(width, 0, 1920 // 5, 1920, (100, 100, 100))
-    field3_top = Field(1920 - 1820 // 5, 1000 // 10, width, 1020, (100, 100, 100))
+    field3_right = Field(width, 0, 1920 // 5, 1920, (222,  184, 135))
+    field3_top = Field(1920 - 1820 // 5, 1000 // 10, width, 1020, (222, 184, 135))
 
 
 def save_game_state(game_state, file_name):
@@ -133,9 +143,9 @@ action_button6 = Button(window_size[0] - 240, 1000, 130, 90, "SAVE", (0, 128, 0)
                         lambda: save_game_state(game_state, 'save_game.pickle'))
 action_button7 = Button(window_size[0] - 120, 1000, 130, 90, "Quit", (0, 128, 0), lambda: pygame.quit() or sys.exit())
 # Создание кнопок для полосы
-button1_field3_1 = Button(0, 10, 160, 160, "%", (0, 128, 0), lambda: print("%"))
-button2_field3_2 = Button(150, 10, 160, 90, "$", (0, 128, 0), lambda: print("$"))
-button3_field3_3 = Button(300, 10, 160, 90, "m/month", (0, 128, 0), lambda: print("m/month"))
+button1_field3_1 = Button(0, 10, 160, 80, "%", (0, 128, 0), lambda: print("%"))
+button2_field3_2 = Button(150, 10, 160, 80, "$", (0, 128, 0), lambda: print("$"))
+button3_field3_3 = Button(300, 10, 160, 80, "m/month", (0, 128, 0), lambda: print("m/month"))
 
 # Создание кнопок паузы
 continue_button1 = Button(window_size[0] // 2 - 100, window_size[1] // 2 - 80, 200, 80, "Continue", (0, 128, 0),
@@ -177,7 +187,6 @@ def paused():
 running = True
 cnt = 0  # Count fps
 while running:
-    game.clear_previews()
     screen.fill((189, 183, 107))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
