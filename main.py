@@ -59,14 +59,14 @@ class Button:  # Класс для кнопки
                 self.initialxy = list(pygame.mouse.get_pos())
                 self.initialxy[0] //= 10
                 self.initialxy[1] //= 10
-                print(self.initialxy)
+                print(self.initialxy[0]+map_position[0]//10, self.initialxy[1]+map_position[1]//10)
             elif self.toggled and self.initialxy != []:
                 self.finxy = list(pygame.mouse.get_pos())
                 self.finxy[0] //= 10
                 self.finxy[1] //= 10  # update with proper coords
                 print(self.finxy)
-                res = self.grid.place_pipes(self.initialxy[1]+map_position[1], self.initialxy[0]+map_position[0],
-                                            self.finxy[1]+map_position[1], self.finxy[0]+map_position[0],
+                res = self.grid.place_pipes(self.initialxy[1]+map_position[1]//10, self.initialxy[0]+map_position[0]//10,
+                                            self.finxy[1]+map_position[1]//10, self.finxy[0]+map_position[0]//10,
                                             preview=False)
                 if res is True:
                     self.initialxy = []
@@ -78,8 +78,8 @@ class Button:  # Класс для кнопки
             self.finxy = list(pygame.mouse.get_pos())  # update with proper coords
             self.finxy[0] //= 10
             self.finxy[1] //= 10
-            res = self.grid.place_pipes(self.initialxy[1]+map_position[1], self.initialxy[0]+map_position[0],
-                                        self.finxy[1]+map_position[1], self.finxy[0]+map_position[0],
+            res = self.grid.place_pipes(self.initialxy[1]+map_position[1]//10, self.initialxy[0]+map_position[0]//10,
+                                        self.finxy[1]+map_position[1]//10, self.finxy[0]+map_position[0]//10,
                                         preview=True)
 
 
@@ -143,9 +143,9 @@ action_button6 = Button(window_size[0] - 240, 1000, 130, 90, "SAVE", (0, 128, 0)
                         lambda: save_game_state(game_state, 'save_game.pickle'))
 action_button7 = Button(window_size[0] - 120, 1000, 130, 90, "Quit", (0, 128, 0), lambda: pygame.quit() or sys.exit())
 # Создание кнопок для полосы
-button1_field3_1 = Button(0, 10, 160, 80, "%", (0, 128, 0), lambda: print("%"))
-button2_field3_2 = Button(150, 10, 160, 80, "$", (0, 128, 0), lambda: print("$"))
-button3_field3_3 = Button(300, 10, 160, 80, "m/month", (0, 128, 0), lambda: print("m/month"))
+button1_field3_1 = Button(0, 10, 160, 85, "%", (0, 128, 0), lambda: print("%"))
+button2_field3_2 = Button(150, 10, 160, 85, "$", (0, 128, 0), lambda: print("$"))
+button3_field3_3 = Button(300, 10, 160, 85, "m/month", (0, 128, 0), lambda: print("m/month"))
 
 # Создание кнопок паузы
 continue_button1 = Button(window_size[0] // 2 - 100, window_size[1] // 2 - 80, 200, 80, "Continue", (0, 128, 0),
@@ -257,8 +257,6 @@ while running:
     clock.tick(FPS)
     pygame.display.flip()  # Обновление экрана
     cnt += 1
-
-    
 
 # Завершение работы с Pygame
 pygame.quit()
