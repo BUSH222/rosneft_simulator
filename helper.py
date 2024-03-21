@@ -104,6 +104,8 @@ class Tile:
         elif self.pipepreviewtype == 'invalid' or self.rigpreviewtype == 'invalid':
             return (255, 0, 0)
         if self.haspipe:
+            if self.exportpipe:
+                return (0, 0, 255)
             if self.connection is None:
                 return 'dlru'
             return self.connection
@@ -117,9 +119,6 @@ class TileGrid:
     """Class for handling a 2d list of tiles - the playing field"""
     def __init__(self, sizex, sizey, budget) -> None:
         self.budget = budget
-        self.exportpipecoords = [5, 0]
-        self.exportpipedirection = 'r'
-        self.exportpipelength = 2
         self.sizex = sizex
         self.sizey = sizey
         self.grid = [[Tile(x, y, 0) for x in range(sizex)] for y in range(sizey)]
@@ -269,15 +268,14 @@ class TileGrid:
 
     def place_export_pipe(self):
         if random.choice([True, False]):
-            x_coord = random.randint(0, self.grid.sizex - 1)
-            y_coord = self.grid.sizey - 1
-            self.exportpipedirection = 'd'
+            x_coord = random.randint(0, self.sizex - 1)
+            y_coord = self.sizey - 1
         else:
             x_coord = 0
-            y_coord = random.randint(0, self.grid.sizey - 1)
-            self.exportpipedirection = 'l'
+            y_coord = random.randint(0, self.sizey - 1)
         
-        self.exportpipecoords = [x_coord, y_coord]
+        self.grid[x_coord][y_coord].haspipe = True
+        self.grid[x_coord][y_coord].exportpipe = True
 
     def generate_tile_prices(self):
         for row in self.grid.grid:
@@ -323,4 +321,4 @@ class Game:
 
 
 if __name__ == '__main__':
-    g = TileGrid(10, 10)
+    g = TileGrid(10, 10, 500000)

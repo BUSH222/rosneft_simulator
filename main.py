@@ -19,6 +19,7 @@ map_position = (0, 115)  # Initial position of the map
 map_speed = 5  # Speed at which the map moves
 
 game = helper.TileGrid(155, 100, 1000000)
+game.place_export_pipe()
 
 clock = pygame.time.Clock()
 FPS = 50
