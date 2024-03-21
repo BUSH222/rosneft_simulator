@@ -177,6 +177,14 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        start_button.handle_event(event)
+        quit_button.handle_event(event)
+        action_button5.handle_event(event)
+        continue_button1.handle_event(event)
+        quit_button1.handle_event(event)
+        action_button7.handle_event(event)
+        action_button6.handle_event(event)
+        
     screen.fill((189, 183, 107))  # Заполнение экрана черным цветом
     draw_title(screen, "Rosneft Simulator")  # Отображение названия
     start_button.draw(screen)  # Отображение кнопки "Начать игру"
@@ -215,7 +223,7 @@ while running:
         valid = 0
         for k in game.grid:
             for m in k:
-                if k.haspipe:
+                if m.haspipe:
                     valid += 1
         print(valid)
     
