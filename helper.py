@@ -80,13 +80,13 @@ class Tile:
             if self.y-1 >= 0:
                 if grid[self.y-1][self.x].haspipe or grid[self.y-1][self.x].hasrig:
                     nearbypipes.append('u')
-            if self.y+1 < sizex:
+            if self.y+1 < sizey:
                 if grid[self.y+1][self.x].haspipe or grid[self.y+1][self.x].hasrig:
                     nearbypipes.append('d')
             if self.x-1 >= 0:
                 if grid[self.y][self.x-1].haspipe or grid[self.y][self.x-1].hasrig:
                     nearbypipes.append('l')
-            if self.x+1 < sizey:
+            if self.x+1 < sizex:
                 if grid[self.y][self.x+1].haspipe or grid[self.y][self.x+1].hasrig:
                     nearbypipes.append('r')
             self.connection = ''.join(sorted(nearbypipes))
@@ -166,38 +166,33 @@ class TileGrid:
         if y_origin > y_dest:
             ystep = -1
 
-        potentialpipes = []
+        potentialcoords = []
         current_point = [x_origin, y_origin]
         while current_point != turn:
             if initialdirection == 'x':
-                if current_point == [x_origin, y_origin]:
-                    potentialpipes.append(self.grid[current_point[0]][current_point[1]])
-                else:
-                    potentialpipes.append(self.grid[current_point[0]][current_point[1]])
+                potentialcoords.append(current_point)
                 current_point = [current_point[0]+xstep, current_point[1]]
             else:
-                if current_point == [x_origin, y_origin]:
-                    potentialpipes.append(self.grid[current_point[0]][current_point[1]])
-                else:
-                    potentialpipes.append(self.grid[current_point[0]][current_point[1]])
+                potentialcoords.append(current_point)
                 current_point = [current_point[0], current_point[1]+ystep]
 
         initialdirection = 'y' if initialdirection == 'x' else 'x'
 
         while current_point != [x_dest, y_dest]:
             if initialdirection == 'x':
-                if current_point == turn:
-                    potentialpipes.append(self.grid[current_point[0]][current_point[1]])
-                else:
-                    potentialpipes.append(self.grid[current_point[0]][current_point[1]])
+                potentialcoords.append(current_point)
                 current_point = [current_point[0]+xstep, current_point[1]]
             else:
-                if current_point == turn:
-                    potentialpipes.append(self.grid[current_point[0]][current_point[1]])
-                else:
-                    potentialpipes.append(self.grid[current_point[0]][current_point[1]])
+                potentialcoords.append(current_point)
                 current_point = [current_point[0], current_point[1]+ystep]
-        potentialpipes.append(self.grid[x_dest][y_dest])
+        potentialcoords.append([x_dest, y_dest])
+
+        # keep only valid coordinates
+        potentialpipes = []
+        for item in potentialcoords:
+            if (0 <= item[0] < self.sizey) and (0 <= item[1] < self.sizex):
+                potentialpipes.append(self.grid[item[0]][item[1]])
+
         if delete is True:
             for item in potentialpipes:
                 item.delete_pipe()

@@ -17,10 +17,14 @@ map_image = pygame.image.load('map3.jpg')
 map_position = (0, 115)  # Initial position of the map
 map_speed = 5  # Speed at which the map moves
 
-game = helper.TileGrid(165, 100)
+game = helper.TileGrid(155, 100)
 
 clock = pygame.time.Clock()
 FPS = 50
+
+pause = False
+started = False
+
 
 class Button:  # Класс для кнопки
     global map_position
@@ -52,31 +56,57 @@ class Button:  # Класс для кнопки
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.rect.collidepoint(event.pos):
+            if pygame.mouse.get_pressed()[0] and self.rect.collidepoint(event.pos):
                 if self.action:
                     print(f'toggled {self.toggledaction}')
                     self.action()
-            elif self.toggled and self.initialxy == [] and self.toggledaction == 'build_pipes':
-                self.initialxy = list(pygame.mouse.get_pos())
-                self.initialxy[0] -= map_position[0]
-                self.initialxy[0] //= TILE_SIZE
-                self.initialxy[1] -= map_position[1]
-                self.initialxy[1] //= TILE_SIZE
-                print(self.initialxy[0], self.initialxy[1])
-            elif self.toggled and self.initialxy != [] and self.toggledaction == 'build_pipes':
-                self.finxy = list(pygame.mouse.get_pos())
-                self.finxy[0] -= map_position[0]
-                self.finxy[0] //= TILE_SIZE
-                self.finxy[1] -= map_position[1]
-                self.finxy[1] //= TILE_SIZE  # update with proper coords
-                print(self.finxy)
-                res = self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
-                                            self.finxy[1], self.finxy[0],
-                                            preview=False)
-                if res is True:
-                    self.initialxy = []
-                    self.finxy = []
-                    self.grid.clear_previews()
+                    return
+
+            if self.toggledaction == 'build_pipes':
+                
+                if pygame.mouse.get_pressed()[2]:
+                    if self.toggled and self.initialxy == [] and self.toggledaction == 'build_pipes':
+                        self.initialxy = list(pygame.mouse.get_pos())
+                        self.initialxy[0] -= map_position[0]
+                        self.initialxy[0] //= TILE_SIZE
+                        self.initialxy[1] -= map_position[1]
+                        self.initialxy[1] //= TILE_SIZE
+                    elif self.toggled and self.initialxy != [] and self.toggledaction == 'build_pipes':
+                        self.finxy = list(pygame.mouse.get_pos())
+                        self.finxy[0] -= map_position[0]
+                        self.finxy[0] //= TILE_SIZE
+                        self.finxy[1] -= map_position[1]
+                        self.finxy[1] //= TILE_SIZE  # update with proper coords
+                        print(self.finxy)
+                        res = self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
+                                                    self.finxy[1], self.finxy[0],
+                                                    preview=False, delete=True)
+                        print('doing deleting')
+                        self.initialxy = []
+                        self.finxy = []
+                        self.grid.clear_previews()
+                
+                elif pygame.mouse.get_pressed()[0]:
+                    if self.toggled and self.initialxy == [] and self.toggledaction == 'build_pipes':
+                        self.initialxy = list(pygame.mouse.get_pos())
+                        self.initialxy[0] -= map_position[0]
+                        self.initialxy[0] //= TILE_SIZE
+                        self.initialxy[1] -= map_position[1]
+                        self.initialxy[1] //= TILE_SIZE
+                        print(self.initialxy[0], self.initialxy[1])
+                    elif self.toggled and self.initialxy != [] and self.toggledaction == 'build_pipes':
+                        self.finxy = list(pygame.mouse.get_pos())
+                        self.finxy[0] -= map_position[0]
+                        self.finxy[0] //= TILE_SIZE
+                        self.finxy[1] -= map_position[1]
+                        self.finxy[1] //= TILE_SIZE  # update with proper coords
+                        print(self.finxy)
+                        self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
+                                                    self.finxy[1], self.finxy[0],
+                                                    preview=False)
+                        self.initialxy = []
+                        self.finxy = []
+                        self.grid.clear_previews()
 
         if self.toggled and self.initialxy != [] and self.toggledaction == 'build_pipes':
             self.grid.clear_previews()
@@ -85,9 +115,9 @@ class Button:  # Класс для кнопки
             self.finxy[0] //= 10
             self.finxy[1] -= map_position[1]
             self.finxy[1] //= 10
-            res = self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
-                                        self.finxy[1], self.finxy[0],
-                                        preview=True)
+            self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
+                                  self.finxy[1], self.finxy[0],
+                                  preview=True)
 
 
 # Класс для поля
@@ -103,7 +133,7 @@ class Field:
 
 
 def start_new_game():
-    global field1, field2, field3_right, field3_top
+    global field1, field2, field3_right, field3_top, started
 
     screen_size = pygame.display.get_surface().get_size()
     width, height = screen_size
@@ -112,6 +142,7 @@ def start_new_game():
     field2 = Field(0, height // 11, width, 1920, (150, 150, 150))
     field3_right = Field(width, 0, 1920 // 5, 1920, (222,  184, 135))
     field3_top = Field(1920 - 1820 // 5, 1000 // 10, width, 1020, (222, 184, 135))
+    started = True
 
 
 def save_game_state(game_state, file_name):
@@ -128,8 +159,8 @@ game_state = {
     'player_y': 500
 }
 # Modify the "New Game" button action
-start_button = Button(850, 400, 200, 50, "New game", (0, 128, 0), lambda: start_new_game())
-quit_button = Button(850, 500, 200, 50, "Exit", (128, 0, 0), lambda: pygame.quit() or sys.exit())
+start_button = Button(850, 400, 200, 50, "New game", (0, 128, 0), lambda: (start_new_game()) if not started else False)
+quit_button = Button(850, 500, 200, 50, "Exit", (128, 0, 0), lambda: ((pygame.quit() or sys.exit()) if not started else False), toggledaction='quit_new_game')
 
 
 def draw_title(screen, title):  # Функция для отображения названия
@@ -148,7 +179,7 @@ action_button4 = Button(window_size[0] - 360, 340, 360, 90, "4. Build oil rig", 
 action_button5 = Button(window_size[0] - 360, 1000, 130, 90, "||", (0, 128, 0), lambda: paused())
 action_button6 = Button(window_size[0] - 240, 1000, 130, 90, "SAVE", (0, 128, 0),
                         lambda: save_game_state(game_state, 'save_game.pickle'))
-action_button7 = Button(window_size[0] - 120, 1000, 130, 90, "Quit", (0, 128, 0), lambda: pygame.quit() or sys.exit())
+action_button7 = Button(window_size[0] - 120, 1000, 130, 90, "Quit", (0, 128, 0), lambda: pygame.quit() or sys.exit(), toggledaction='quit')
 # Создание кнопок для полосы
 button1_field3_1 = Button(0, 10, 160, 85, "%", (0, 128, 0), lambda: print("%"))
 button2_field3_2 = Button(150, 10, 160, 85, "$", (0, 128, 0), lambda: print("$"))
@@ -156,9 +187,9 @@ button3_field3_3 = Button(300, 10, 160, 85, "m/month", (0, 128, 0), lambda: prin
 
 # Создание кнопок паузы
 continue_button1 = Button(window_size[0] // 2 - 100, window_size[1] // 2 - 80, 200, 80, "Continue", (0, 128, 0),
-                          lambda: paused())
+                          lambda: paused() if pause else False)
 quit_button1 = Button(window_size[0] // 2 - 100, window_size[1] // 2 + 10, 200, 80, "Quit", (128, 0, 0),
-                      lambda: pygame.quit() or sys.exit())
+                      lambda: ((pygame.quit() or sys.exit()) if pause else False))
 
 
 # создание поверхности паузы
@@ -169,6 +200,7 @@ def create_pause_surface():
 
 
 def paused():
+    global pause
     pause_surface = create_pause_surface()
     pause = True
     while pause:
