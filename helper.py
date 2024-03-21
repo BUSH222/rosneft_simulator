@@ -197,7 +197,6 @@ class TileGrid:
                 else:
                     potentialpipes.append(self.grid[current_point[0]][current_point[1]])
                 current_point = [current_point[0], current_point[1]+ystep]
-
         potentialpipes.append(self.grid[x_dest][y_dest])
         if delete is True:
             for item in potentialpipes:
