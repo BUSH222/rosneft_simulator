@@ -5,6 +5,7 @@ import helper
 pygame.init()
 
 # Создание окна
+TILE_SIZE = 10
 window_size = (1920, 1080)
 screen = pygame.display.set_mode(window_size, pygame.FULLSCREEN)
 pygame.display.set_caption('Rosneft simulator')
@@ -13,19 +14,27 @@ pygame.display.set_caption('Rosneft simulator')
 background = pygame.image.load('background.jpg')
 
 map_image = pygame.image.load('map2.jpg')
-map_position = (0, 0) # Initial position of the map
-map_speed = 5 # Speed at which the map moves
+map_position = (0, 0)  # Initial position of the map
+map_speed = 5  # Speed at which the map moves
+
+game = helper.TileGrid(165, 100)
 
 clock = pygame.time.Clock()
 FPS = 50
 
 
 class Button:  # Класс для кнопки
-    def __init__(self, x, y, w, h, text, color, action=None):
+    def __init__(self, x, y, w, h, text, color, action=None, toggledaction=None, grid=game):
         self.rect = pygame.Rect(x, y, w, h)
         self.text = text
         self.color = color
         self.action = action
+        self.toggled = False
+        self.initialxy = []
+        self.grid = grid
+
+    def toggle(self):
+        self.toggled = not self.toggled
 
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.rect)
@@ -45,6 +54,20 @@ class Button:  # Класс для кнопки
             if self.rect.collidepoint(event.pos):
                 if self.action:
                     self.action()
+            if self.toggled and self.initialxy == []:
+                self.initialxy == pygame.mouse.get_pos()
+                self.initialxy[0] //= 10
+                self.initialxy[1] //= 10
+            if self.toggled and self.initialxy != []:
+                self.finxy == pygame.mouse.get_pos()
+                self.finxy[0] //= 10
+                self.finxy[1] //= 10  # update with proper coords
+                self.grid.place_pipes(self.initialxy[1], self.initialxy[0], self.finxy[1], self.finxy[0], preview = False)
+        if self.toggled and self.initialxy != [] and self.toggledaction == 'build_pipes':
+            self.finxy == pygame.mouse.get_pos()  # update with proper coords
+            self.finxy[0] //= 10
+            self.finxy[1] //= 10
+            self.grid.place_pipes(self.initialxy[1], self.initialxy[0], self.finxy[1], self.finxy[0], preview = False)
 
 
 # Класс для поля
@@ -99,16 +122,17 @@ def draw_title(screen, title):  # Функция для отображения �
 # Создание кнопок действия
 action_button1 = Button(window_size[0] - 360, 100, 360, 90, "1.Buy land", (0, 128, 0))
 action_button2 = Button(window_size[0] - 360, 180, 360, 90, "2. Survey", (0, 128, 0))
-action_button3 = Button(window_size[0] - 360, 260, 360, 90, "3. Buld pipe", (0, 128, 0))
+action_button3 = Button(window_size[0] - 360, 260, 360, 90, "3. Buld pipe", (0, 128, 0),
+                        lambda: action_button3.toggle(), toggledaction='build_pipes', grid=game)
 action_button4 = Button(window_size[0] - 360, 340, 360, 90, "4. Build oil rig", (0, 128, 0))
 action_button5 = Button(window_size[0] - 360, 1000, 130, 90, "||", (0, 128, 0), lambda: paused())
 action_button6 = Button(window_size[0] - 240, 1000, 130, 90, "SAVE", (0, 128, 0),
                         lambda: save_game_state(game_state, 'save_game.pickle'))
 action_button7 = Button(window_size[0] - 120, 1000, 130, 90, "Quit", (0, 128, 0), lambda: pygame.quit() or sys.exit())
 # Создание кнопок для полосы
-button1_field3_1 = Button(0, 10, 160, 140, "%", (0, 128, 0), lambda: print("%"))
-button2_field3_2 = Button(150, 10, 160, 140, "$", (0, 128, 0), lambda: print("$"))
-button3_field3_3 = Button(300, 10, 160, 140, "m/month", (0, 128, 0), lambda: print("m/month"))
+button1_field3_1 = Button(0, 10, 160, 100, "%", (0, 128, 0), lambda: print("%"))
+button2_field3_2 = Button(150, 10, 160, 100, "$", (0, 128, 0), lambda: print("$"))
+button3_field3_3 = Button(300, 10, 160, 100, "m/month", (0, 128, 0), lambda: print("m/month"))
 
 # Создание кнопок паузы
 continue_button1 = Button(window_size[0] // 2 - 100, window_size[1] // 2 - 80, 200, 80, "Continue", (0, 128, 0),
@@ -148,34 +172,25 @@ def paused():
 
 # Главный цикл игры
 running = True
-game = helper.TileGrid(165, 100)
 cnt = 0  # Count fps
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        start_button.handle_event(event)
-        quit_button.handle_event(event)
-        action_button5.handle_event(event)
-        continue_button1.handle_event(event)
-        quit_button1.handle_event(event)
-        action_button7.handle_event(event)
-        action_button6.handle_event(event)
     screen.fill((189, 183, 107))  # Заполнение экрана черным цветом
     draw_title(screen, "Rosneft Simulator")  # Отображение названия
     start_button.draw(screen)  # Отображение кнопки "Начать игру"
     quit_button.draw(screen)  # Отображение кнопки "Выход"
 
+    if 'field2' in globals():  # Отображение карты
+        field2.draw(screen)
+        draw_title(screen, "Map")  # Отображение названия
+        screen.blit(map_image, (map_position[0], map_position[1]))
     if 'field1' in globals():
         field1.draw(screen)
         button1_field3_1.draw(screen)  # Draw buttons in Field3
         button2_field3_2.draw(screen)
         button3_field3_3.draw(screen)
-    if 'field2' in globals():
-        field2.draw(screen)
-        draw_title(screen, "Map")  # Отображение названия
-        screen.blit(map_image, (map_position[0], map_position[1]))  # Отображение карты
-        
     if 'field3_right' in globals():
         field3_right.draw(screen)
     if 'field3_top' in globals():
@@ -196,13 +211,32 @@ while running:
         map_position = (map_position[0], map_position[1] - map_speed)
     if keys[pygame.K_DOWN]:
         map_position = (map_position[0], map_position[1] + map_speed)
+    if keys[pygame.K_0]:
+        valid = 0
+        for k in game.grid:
+            for m in k:
+                if k.haspipe:
+                    valid += 1
+        print(valid)
+    
 
     
+
+
+    for i, x in enumerate(game.grid):
+        for j, y in enumerate(x):
+            rect = pygame.Rect(j*TILE_SIZE, i*TILE_SIZE, TILE_SIZE, TILE_SIZE)
+            color = y.draw()
+            if y.draw == (0, 0, 0):
+                pygame.draw.rect(screen, y.draw(), rect)
 
     if cnt % 50 == 1:  # change later, temp
         game.validate_all()
     clock.tick(FPS)
     pygame.display.flip()  # Обновление экрана
+    cnt += 1
+
+    
 
 # Завершение работы с Pygame
 pygame.quit()

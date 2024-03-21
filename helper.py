@@ -207,13 +207,16 @@ class TileGrid:
                 return False
             for item in potentialpipes:
                 item.place_pipe()
+            return True
         else:
             if all([tile.can_place_pipe() for tile in potentialpipes]):
                 for item in potentialpipes:
                     item.pipepreviewtype = 'valid'
+                return True
             else:
                 for item in potentialpipes:
                     item.pipepreviewtype = 'invalid'
+                return False
 
     def place_rig(self, x, y, preview=False):
         """Function for placing a rig on the tile:
