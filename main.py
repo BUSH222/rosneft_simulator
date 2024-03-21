@@ -2,6 +2,7 @@ import pygame
 import sys
 import pickle
 import helper
+import os
 pygame.init()
 
 # Создание окна
@@ -24,6 +25,14 @@ FPS = 50
 
 pause = False
 started = False
+
+images = {}
+for f in os.listdir('pipes/'):
+    imname = os.path.splitext(f)[0]
+    print(f)
+    images[imname] = pygame.transform.scale(pygame.image.load('pipes/'+f).convert_alpha(), (10, 10))
+
+print(images)
 
 
 class Button:  # Класс для кнопки
@@ -286,9 +295,12 @@ while running:
 
     for i, x in enumerate(game.grid):
         for j, y in enumerate(x):
+
             rect = pygame.Rect(j*TILE_SIZE+map_position[0], i*TILE_SIZE+map_position[1], TILE_SIZE, TILE_SIZE)
             color = y.draw()
-            if y.draw() != (0, 0, 0):
+            if isinstance(color, str):
+                screen.blit(images[color], rect)
+            elif y.draw() != (0, 0, 0):
                 pygame.draw.rect(screen, y.draw(), rect)
 
     if cnt % 50 == 1:  # change later, temp

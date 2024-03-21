@@ -105,7 +105,9 @@ class Tile:
             return (255, 0, 0)
         else:
             if self.haspipe:
-                return (200, 200, 200)
+                if self.connection is None:
+                    return 'dlru'
+                return self.connection
             else:
                 return (0, 0, 0)
 
