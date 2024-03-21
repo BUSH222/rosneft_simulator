@@ -10,7 +10,7 @@ pygame.display.set_caption('Rosneft simulator')
 
 # Загрузка изображений
 background = pygame.image.load('background.jpg')
-map_image = pygame.image.load('map.jpg')
+map_image = pygame.image.load('map2.jpg')
 
 
 class Button:  # Класс для кнопки
