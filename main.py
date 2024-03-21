@@ -1,6 +1,7 @@
 import pygame
 import sys
 import pickle
+import helper
 pygame.init()
 
 # Создание окна
@@ -10,7 +11,13 @@ pygame.display.set_caption('Rosneft simulator')
 
 # Загрузка изображений
 background = pygame.image.load('background.jpg')
+
 map_image = pygame.image.load('map2.jpg')
+map_position = (0, 0) # Initial position of the map
+map_speed = 5 # Speed at which the map moves
+
+clock = pygame.time.Clock()
+FPS = 50
 
 
 class Button:  # Класс для кнопки
@@ -91,7 +98,7 @@ def draw_title(screen, title):  # Функция для отображения �
 
 # Создание кнопок действия
 action_button1 = Button(window_size[0] - 360, 100, 360, 90, "1.Buy land", (0, 128, 0))
-action_button2 = Button(window_size[0] - 360, 180, 360, 90, "2. Sunvey", (0, 128, 0))
+action_button2 = Button(window_size[0] - 360, 180, 360, 90, "2. Survey", (0, 128, 0))
 action_button3 = Button(window_size[0] - 360, 260, 360, 90, "3. Buld pipe", (0, 128, 0))
 action_button4 = Button(window_size[0] - 360, 340, 360, 90, "4. Build oil rig", (0, 128, 0))
 action_button5 = Button(window_size[0] - 360, 1000, 130, 90, "||", (0, 128, 0), lambda: paused())
@@ -141,6 +148,8 @@ def paused():
 
 # Главный цикл игры
 running = True
+game = helper.TileGrid(165, 100)
+cnt = 0  # Count fps
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -165,10 +174,10 @@ while running:
     if 'field2' in globals():
         field2.draw(screen)
         draw_title(screen, "Map")  # Отображение названия
-        screen.blit(map_image, (100, 500))  # Отображение карты
+        screen.blit(map_image, (map_position[0], map_position[1]))  # Отображение карты
+        
     if 'field3_right' in globals():
         field3_right.draw(screen)
-
     if 'field3_top' in globals():
         field3_top.draw(screen)
         action_button1.draw(screen)  # Draw action buttons
@@ -178,7 +187,21 @@ while running:
         action_button5.draw(screen)
         action_button6.draw(screen)
         action_button7.draw(screen)
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        map_position = (map_position[0] - map_speed, map_position[1])
+    if keys[pygame.K_RIGHT]:
+        map_position = (map_position[0] + map_speed, map_position[1])
+    if keys[pygame.K_UP]:
+        map_position = (map_position[0], map_position[1] - map_speed)
+    if keys[pygame.K_DOWN]:
+        map_position = (map_position[0], map_position[1] + map_speed)
 
+    
+
+    if cnt % 50 == 1:  # change later, temp
+        game.validate_all()
+    clock.tick(FPS)
     pygame.display.flip()  # Обновление экрана
 
 # Завершение работы с Pygame
