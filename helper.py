@@ -99,22 +99,27 @@ class Tile:
 
     def draw(self):
         """This function handles the colors of the tile and the icons"""
-        if self.pipepreviewtype == 'valid':
+        if self.pipepreviewtype == 'valid' or self.rigpreviewtype == 'valid':
             return (0, 255, 0)
-        elif self.pipepreviewtype == 'invalid':
+        elif self.pipepreviewtype == 'invalid' or self.rigpreviewtype == 'invalid':
             return (255, 0, 0)
+        if self.haspipe:
+            if self.connection is None:
+                return 'dlru'
+            return self.connection
+        elif self.hasrig:
+            return 'rig'
         else:
-            if self.haspipe:
-                if self.connection is None:
-                    return 'dlru'
-                return self.connection
-            else:
-                return (0, 0, 0)
+            return (0, 0, 0)
 
 
 class TileGrid:
     """Class for handling a 2d list of tiles - the playing field"""
-    def __init__(self, sizex, sizey) -> None:
+    def __init__(self, sizex, sizey, budget) -> None:
+        self.budget = budget
+        self.exportpipecoords = [5, 0]
+        self.exportpipedirection = 'r'
+        self.exportpipelength = 2
         self.sizex = sizex
         self.sizey = sizey
         self.grid = [[Tile(x, y, 0) for x in range(sizex)] for y in range(sizey)]
@@ -215,18 +220,22 @@ class TileGrid:
                     item.pipepreviewtype = 'invalid'
                 return False
 
-    def place_rig(self, x, y, preview=False):
+    def place_rig(self, x, y, preview=False, delete=False):
         """Function for placing a rig on the tile:
         x, y are rig coordinates
         preview - if preview mode is on"""
+        if not ((0 <= x < self.sizey) and (0 <= y < self.sizex)):
+            return False
         tile = self.grid[x][y]
-
+        if delete:
+            tile.hasrig = False
+            return True
         if tile.can_place_rig() and preview:
             tile.rigpreviewtype = 'valid'
-        elif tile.can_place_rig() and not preview:
-            tile.hasrig = True
         elif not tile.can_place_rig() and preview:
             tile.rigpreviewtype = 'invalid'
+        elif tile.can_place_rig() and not preview:
+            tile.hasrig = True
 
     def validate_all(self):
         """Validate and form connections between every single pipe"""
@@ -239,6 +248,66 @@ class TileGrid:
         for row in self.grid:
             for tile in row:
                 tile.pipepreviewtype = None
+                tile.rigpreviewtype = None
+
+    def generate_everything(self):
+        self.generate_oil_deposits()
+        self.generate_tile_prices()
+        self.place_export_pipe()
+
+    def calculate_total_exports(self):
+        pass  # i will do this
+
+    def generate_oil_deposits(self):
+        for row in self.grid:
+            for tile in row:
+                if random.random() < 0.2:
+                    tile.oiltype = 'central'  
+                elif random.random() < 0.2:
+                    tile.oiltype = 'simple'   
+    
+
+    def place_export_pipe(self):
+        if random.choice([True, False]):
+            x_coord = random.randint(0, self.grid.sizex - 1)
+            y_coord = self.grid.sizey - 1
+            self.exportpipedirection = 'd'
+        else:
+            x_coord = 0
+            y_coord = random.randint(0, self.grid.sizey - 1)
+            self.exportpipedirection = 'l'
+        
+        self.exportpipecoords = [x_coord, y_coord]
+
+    def generate_tile_prices(self):
+        for row in self.grid.grid:
+            for tile in row:
+                tile.price = random.randint(1, 10)
+
+    def buy_tiles(self, x_origin, y_origin, x_dest, y_dest):
+        total_cost = 0
+
+
+        for x in range(min(x_origin, x_dest), max(x_origin, x_dest) + 1):
+            for y in range(min(y_origin, y_dest), max(y_origin, y_dest) + 1):
+                total_cost += self.grid.grid[y][x].price
+
+
+        if total_cost > self.budget:
+            print("Not enough budget to buy these tiles.")
+            return False
+
+
+        for x in range(min(x_origin, x_dest), max(x_origin, x_dest) + 1):
+            for y in range(min(y_origin, y_dest), max(y_origin, y_dest) + 1):
+                self.grid.grid[y][x].isowned = True
+                self.budget -= self.grid.grid[y][x].price
+
+        print("Tiles bought successfully.")
+        return True
+
+    def survey_tiles(self, x_origin, y_origin, x_dest, y_dest):
+        pass
 
 
 class Game:
@@ -248,16 +317,7 @@ class Game:
         self.exportpipecoords = [5, 0]
         self.exportpipedirection = 'r'
         self.exportpipelength = 2
-
-    def generate_everything(self):
-        pass
-
-    def calculate_total_exports(self):
-        pass
-
-    def buy_tiles(self, x_origin, y_origin, x_dest, y_dest):
-        pass
-
+        
     def survey_tiles(self, x_origin, y_origin, x_dest, y_dest):
         pass
 

@@ -18,7 +18,7 @@ map_image = pygame.image.load('map3.jpg')
 map_position = (0, 115)  # Initial position of the map
 map_speed = 5  # Speed at which the map moves
 
-game = helper.TileGrid(155, 100)
+game = helper.TileGrid(155, 100, 1000000)
 
 clock = pygame.time.Clock()
 FPS = 50
@@ -29,14 +29,12 @@ started = False
 images = {}
 for f in os.listdir('pipes/'):
     imname = os.path.splitext(f)[0]
-    print(f)
     images[imname] = pygame.transform.scale(pygame.image.load('pipes/'+f).convert_alpha(), (10, 10))
-
-print(images)
 
 
 class Button:  # Класс для кнопки
     global map_position
+
     def __init__(self, x, y, w, h, text, color, action=None, toggledaction=None, grid=game):
         self.rect = pygame.Rect(x, y, w, h)
         self.text = text
@@ -49,6 +47,16 @@ class Button:  # Класс для кнопки
 
     def toggle(self):
         self.toggled = not self.toggled
+        if self.toggled:
+            self.color = (0, 200, 0)
+            for button in action_buttons:
+                if button != self and button.toggled:
+                    button.toggle()
+        else:
+            self.color = (0, 128, 0)
+        
+        
+
 
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.rect)
@@ -117,6 +125,18 @@ class Button:  # Класс для кнопки
                         self.finxy = []
                         self.grid.clear_previews()
 
+            if self.toggledaction == 'build_rig':
+                if self.toggled:
+                    self.pos = list(pygame.mouse.get_pos())
+                    self.pos[0] -= map_position[0]
+                    self.pos[0] //= TILE_SIZE
+                    self.pos[1] -= map_position[1]
+                    self.pos[1] //= TILE_SIZE
+                    if pygame.mouse.get_pressed()[0]:
+                        self.grid.place_rig(self.pos[1], self.pos[0], preview=False, delete=False)
+                    elif pygame.mouse.get_pressed()[2]:
+                        self.grid.place_rig(self.pos[1], self.pos[0], preview=False, delete=True)
+
         if self.toggled and self.initialxy != [] and self.toggledaction == 'build_pipes':
             self.grid.clear_previews()
             self.finxy = list(pygame.mouse.get_pos())  # update with proper coords
@@ -127,6 +147,15 @@ class Button:  # Класс для кнопки
             self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
                                   self.finxy[1], self.finxy[0],
                                   preview=True)
+
+        if self.toggled and self.toggledaction == 'build_rig':
+            self.grid.clear_previews()
+            self.pos = list(pygame.mouse.get_pos())  # update with proper coords
+            self.pos[0] -= map_position[0]
+            self.pos[0] //= 10
+            self.pos[1] -= map_position[1]
+            self.pos[1] //= 10
+            self.grid.place_rig(self.pos[1], self.pos[0], preview=True)
 
 
 # Класс для поля
@@ -180,11 +209,16 @@ def draw_title(screen, title):  # Функция для отображения �
 
 
 # Создание кнопок действия
-action_button1 = Button(window_size[0] - 360, 100, 360, 90, "1.Buy land", (0, 128, 0))
-action_button2 = Button(window_size[0] - 360, 180, 360, 90, "2. Survey", (0, 128, 0))
+action_button1 = Button(window_size[0] - 360, 100, 360, 90, "1.Buy land", (0, 128, 0),
+                        lambda: action_button1.toggle(), toggledaction='buy_land', grid=game)
+action_button2 = Button(window_size[0] - 360, 180, 360, 90, "2. Survey", (0, 128, 0),
+                        lambda: action_button2.toggle(), toggledaction='survey', grid=game)
 action_button3 = Button(window_size[0] - 360, 260, 360, 90, "3. Buld pipe", (0, 128, 0),
                         lambda: action_button3.toggle(), toggledaction='build_pipes', grid=game)
-action_button4 = Button(window_size[0] - 360, 340, 360, 90, "4. Build oil rig", (0, 128, 0))
+action_button4 = Button(window_size[0] - 360, 340, 360, 90, "4. Build oil rig", (0, 128, 0),
+                        lambda: action_button4.toggle(), toggledaction='build_rig', grid=game)
+action_buttons = [action_button1, action_button2, action_button3, action_button4]
+
 action_button5 = Button(window_size[0] - 360, 1000, 130, 90, "||", (0, 128, 0), lambda: paused())
 action_button6 = Button(window_size[0] - 240, 1000, 130, 90, "SAVE", (0, 128, 0),
                         lambda: save_game_state(game_state, 'save_game.pickle'))
@@ -242,7 +276,10 @@ while running:
     
         start_button.handle_event(event)
         quit_button.handle_event(event)
+        action_button1.handle_event(event)
+        action_button2.handle_event(event)
         action_button3.handle_event(event)
+        action_button4.handle_event(event)
         action_button5.handle_event(event)
         continue_button1.handle_event(event)
         quit_button1.handle_event(event)
