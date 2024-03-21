@@ -22,13 +22,13 @@ game = helper.TileGrid(165, 100)
 clock = pygame.time.Clock()
 FPS = 50
 
-
 class Button:  # Класс для кнопки
     def __init__(self, x, y, w, h, text, color, action=None, toggledaction=None, grid=game):
         self.rect = pygame.Rect(x, y, w, h)
         self.text = text
         self.color = color
         self.action = action
+        self.toggledaction = toggledaction
         self.toggled = False
         self.initialxy = []
         self.grid = grid
@@ -53,21 +53,24 @@ class Button:  # Класс для кнопки
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
                 if self.action:
+                    print(f'toggled {self.toggledaction}')
                     self.action()
-            if self.toggled and self.initialxy == []:
-                self.initialxy == pygame.mouse.get_pos()
+            elif self.toggled and self.initialxy == []:
+                self.initialxy = list(pygame.mouse.get_pos())
                 self.initialxy[0] //= 10
                 self.initialxy[1] //= 10
-            if self.toggled and self.initialxy != []:
-                self.finxy == pygame.mouse.get_pos()
+                print(self.initialxy)
+            elif self.toggled and self.initialxy != []:
+                self.finxy = list(pygame.mouse.get_pos())
                 self.finxy[0] //= 10
                 self.finxy[1] //= 10  # update with proper coords
+                print(self.finxy)
                 self.grid.place_pipes(self.initialxy[1], self.initialxy[0], self.finxy[1], self.finxy[0], preview = False)
         if self.toggled and self.initialxy != [] and self.toggledaction == 'build_pipes':
-            self.finxy == pygame.mouse.get_pos()  # update with proper coords
+            self.finxy = list(pygame.mouse.get_pos())  # update with proper coords
             self.finxy[0] //= 10
             self.finxy[1] //= 10
-            self.grid.place_pipes(self.initialxy[1], self.initialxy[0], self.finxy[1], self.finxy[0], preview = False)
+            self.grid.place_pipes(self.initialxy[1], self.initialxy[0], self.finxy[1], self.finxy[0], preview = True)
 
 
 # Класс для поля
@@ -130,9 +133,9 @@ action_button6 = Button(window_size[0] - 240, 1000, 130, 90, "SAVE", (0, 128, 0)
                         lambda: save_game_state(game_state, 'save_game.pickle'))
 action_button7 = Button(window_size[0] - 120, 1000, 130, 90, "Quit", (0, 128, 0), lambda: pygame.quit() or sys.exit())
 # Создание кнопок для полосы
-button1_field3_1 = Button(0, 10, 160, 100, "%", (0, 128, 0), lambda: print("%"))
-button2_field3_2 = Button(150, 10, 160, 100, "$", (0, 128, 0), lambda: print("$"))
-button3_field3_3 = Button(300, 10, 160, 100, "m/month", (0, 128, 0), lambda: print("m/month"))
+button1_field3_1 = Button(0, 10, 160, 160, "%", (0, 128, 0), lambda: print("%"))
+button2_field3_2 = Button(150, 10, 160, 90, "$", (0, 128, 0), lambda: print("$"))
+button3_field3_3 = Button(300, 10, 160, 90, "m/month", (0, 128, 0), lambda: print("m/month"))
 
 # Создание кнопок паузы
 continue_button1 = Button(window_size[0] // 2 - 100, window_size[1] // 2 - 80, 200, 80, "Continue", (0, 128, 0),
@@ -174,18 +177,24 @@ def paused():
 running = True
 cnt = 0  # Count fps
 while running:
+    game.clear_previews()
+    screen.fill((189, 183, 107))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+    
         start_button.handle_event(event)
         quit_button.handle_event(event)
+        action_button3.handle_event(event)
         action_button5.handle_event(event)
         continue_button1.handle_event(event)
         quit_button1.handle_event(event)
         action_button7.handle_event(event)
         action_button6.handle_event(event)
         
-    screen.fill((189, 183, 107))  # Заполнение экрана черным цветом
+
+        
+  # Заполнение экрана черным цветом
     draw_title(screen, "Rosneft Simulator")  # Отображение названия
     start_button.draw(screen)  # Отображение кнопки "Начать игру"
     quit_button.draw(screen)  # Отображение кнопки "Выход"
@@ -226,16 +235,12 @@ while running:
                 if m.haspipe:
                     valid += 1
         print(valid)
-    
-
-    
-
 
     for i, x in enumerate(game.grid):
         for j, y in enumerate(x):
             rect = pygame.Rect(j*TILE_SIZE, i*TILE_SIZE, TILE_SIZE, TILE_SIZE)
             color = y.draw()
-            if y.draw == (0, 0, 0):
+            if y.draw() != (0, 0, 0):
                 pygame.draw.rect(screen, y.draw(), rect)
 
     if cnt % 50 == 1:  # change later, temp

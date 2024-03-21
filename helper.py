@@ -92,7 +92,7 @@ class Tile:
             self.connection = ''.join(sorted(nearbypipes))
             # for s in grid:
             #    print(*s)
-            print(self.x, self.y, self.connection)
+            # print(self.x, self.y, self.connection)
         else:
             self.connection = None
             self.pipetype = None
