@@ -23,6 +23,7 @@ clock = pygame.time.Clock()
 FPS = 50
 
 class Button:  # Класс для кнопки
+    global map_position
     def __init__(self, x, y, w, h, text, color, action=None, toggledaction=None, grid=game):
         self.rect = pygame.Rect(x, y, w, h)
         self.text = text
@@ -55,18 +56,22 @@ class Button:  # Класс для кнопки
                 if self.action:
                     print(f'toggled {self.toggledaction}')
                     self.action()
-            elif self.toggled and self.initialxy == []:
+            elif self.toggled and self.initialxy == [] and self.toggledaction == 'build_pipes':
                 self.initialxy = list(pygame.mouse.get_pos())
-                self.initialxy[0] //= 10
-                self.initialxy[1] //= 10
-                print(self.initialxy[0]+map_position[0]//10, self.initialxy[1]+map_position[1]//10)
-            elif self.toggled and self.initialxy != []:
+                self.initialxy[0] -= map_position[0]
+                self.initialxy[0] //= TILE_SIZE
+                self.initialxy[1] -= map_position[1]
+                self.initialxy[1] //= TILE_SIZE
+                print(self.initialxy[0], self.initialxy[1])
+            elif self.toggled and self.initialxy != [] and self.toggledaction == 'build_pipes':
                 self.finxy = list(pygame.mouse.get_pos())
-                self.finxy[0] //= 10
-                self.finxy[1] //= 10  # update with proper coords
+                self.finxy[0] -= map_position[0]
+                self.finxy[0] //= TILE_SIZE
+                self.finxy[1] -= map_position[1]
+                self.finxy[1] //= TILE_SIZE  # update with proper coords
                 print(self.finxy)
-                res = self.grid.place_pipes(self.initialxy[1]+map_position[1]//10, self.initialxy[0]+map_position[0]//10,
-                                            self.finxy[1]+map_position[1]//10, self.finxy[0]+map_position[0]//10,
+                res = self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
+                                            self.finxy[1], self.finxy[0],
                                             preview=False)
                 if res is True:
                     self.initialxy = []
@@ -76,10 +81,12 @@ class Button:  # Класс для кнопки
         if self.toggled and self.initialxy != [] and self.toggledaction == 'build_pipes':
             self.grid.clear_previews()
             self.finxy = list(pygame.mouse.get_pos())  # update with proper coords
+            self.finxy[0] -= map_position[0]
             self.finxy[0] //= 10
+            self.finxy[1] -= map_position[1]
             self.finxy[1] //= 10
-            res = self.grid.place_pipes(self.initialxy[1]+map_position[1]//10, self.initialxy[0]+map_position[0]//10,
-                                        self.finxy[1]+map_position[1]//10, self.finxy[0]+map_position[0]//10,
+            res = self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
+                                        self.finxy[1], self.finxy[0],
                                         preview=True)
 
 
@@ -247,7 +254,7 @@ while running:
 
     for i, x in enumerate(game.grid):
         for j, y in enumerate(x):
-            rect = pygame.Rect(j*TILE_SIZE, i*TILE_SIZE, TILE_SIZE, TILE_SIZE)
+            rect = pygame.Rect(j*TILE_SIZE+map_position[0], i*TILE_SIZE+map_position[1], TILE_SIZE, TILE_SIZE)
             color = y.draw()
             if y.draw() != (0, 0, 0):
                 pygame.draw.rect(screen, y.draw(), rect)
