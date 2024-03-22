@@ -40,7 +40,7 @@ class Tile:
         self.rigpreviewtype = None
 
     def __repr__(self) -> str:
-        return str(self.haspipe)
+        return f'{self.x}, {self.y}'
         # return str(self.connection)
 
     def can_place_pipe(self):
@@ -60,8 +60,9 @@ class Tile:
 
     def delete_pipe(self):
         """Delete the pipe on the tile"""
-        self.haspipe = False
-        self.pipetype = None
+        if not self.exportpipe:
+            self.haspipe = False
+            self.pipetype = None
 
     def place_rig(self, grid):
 
@@ -207,6 +208,7 @@ class TileGrid:
             if not all([tile.can_place_pipe() for tile in potentialpipes]):
                 return False
             for item in potentialpipes:
+                print(item)
                 item.place_pipe()
             return True
         else:
@@ -261,10 +263,9 @@ class TileGrid:
         for row in self.grid:
             for tile in row:
                 if random.random() < 0.2:
-                    tile.oiltype = 'central'  
+                    tile.oiltype = 'central'
                 elif random.random() < 0.2:
-                    tile.oiltype = 'simple'   
-    
+                    tile.oiltype = 'simple'
 
     def place_export_pipe(self):
         if random.choice([True, False]):
@@ -273,9 +274,9 @@ class TileGrid:
         else:
             x_coord = 0
             y_coord = random.randint(0, self.sizey - 1)
-        
-        self.grid[x_coord][y_coord].haspipe = True
-        self.grid[x_coord][y_coord].exportpipe = True
+
+        self.grid[y_coord][x_coord].haspipe = True
+        self.grid[y_coord][x_coord].exportpipe = True
 
     def generate_tile_prices(self):
         for row in self.grid.grid:
@@ -285,16 +286,13 @@ class TileGrid:
     def buy_tiles(self, x_origin, y_origin, x_dest, y_dest):
         total_cost = 0
 
-
         for x in range(min(x_origin, x_dest), max(x_origin, x_dest) + 1):
             for y in range(min(y_origin, y_dest), max(y_origin, y_dest) + 1):
                 total_cost += self.grid.grid[y][x].price
 
-
         if total_cost > self.budget:
             print("Not enough budget to buy these tiles.")
             return False
-
 
         for x in range(min(x_origin, x_dest), max(x_origin, x_dest) + 1):
             for y in range(min(y_origin, y_dest), max(y_origin, y_dest) + 1):
@@ -315,7 +313,7 @@ class Game:
         self.exportpipecoords = [5, 0]
         self.exportpipedirection = 'r'
         self.exportpipelength = 2
-        
+
     def survey_tiles(self, x_origin, y_origin, x_dest, y_dest):
         pass
 
