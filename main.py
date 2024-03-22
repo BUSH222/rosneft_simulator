@@ -27,6 +27,9 @@ FPS = 50
 pause = False
 started = False
 
+font1 = pygame.font.Font(None, 20)
+oiltext = []
+
 images = {}
 for f in os.listdir('pipes/'):
     imname = os.path.splitext(f)[0]
@@ -409,11 +412,31 @@ while running:
         action_button5.draw(screen)
         action_button6.draw(screen)
         action_button7.draw(screen)
+
     if cnt % 50 == 0:
+        # Connect the pipes
+        game.validate_all()
+    elif cnt % 50 == 1:
+        # Calculate income
         g = game.calculate_net_income()
         button3_field3_3.updatetext(str(g)+'$/month')
-    elif cnt % 50 == 1:  # change later, temp
-        game.validate_all()
+    elif cnt % 50 == 2:
+        # Calculate vanishing oil deposits
+        oiltext = []
+        for rig in game.calculate_connected_rigs():
+            centraltile = game.grid[rig.centraltilelocation[0]][rig.centraltilelocation[1]]
+            if centraltile not in [i[2] for i in oiltext]:
+                oiltext.append([str(centraltile.oilquantity),
+                                (centraltile.x*10+map_position[0], centraltile.y*10+map_position[1]), centraltile])
+
+            if centraltile.oilquantity > 0:
+                centraltile.oilquantity -= 1
+    # draw oil quantity
+    for text in oiltext:
+        text_surface1 = font1.render(text[0], True, (0, 0, 0))
+        text_rect1 = text_surface1.get_rect(center=text[1])
+        screen.blit(text_surface1, text_rect1)
+    
     button2_field3_2.updatetext(str(game.budget)+'$')
     clock.tick(FPS)
     pygame.display.flip()  # Обновление экрана

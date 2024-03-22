@@ -31,7 +31,7 @@ class Tile:
         self.connection = None
         self.oiltype = None
         self.oilquantity = 0
-        self.originaloilquantity = self.oilquantity
+        self.originaloilquantity = 0
         self.centraltilelocation = [-1, -1]
         self.hasrig = False
         self.rigtype = None
@@ -76,9 +76,9 @@ class Tile:
         else:
             return 0
 
-    def calculate_income(self):
+    def calculate_income(self, grid):
         """Calculate tile income, does not check if connected"""
-        if not self.hasrig:
+        if not self.hasrig or grid[self.centraltilelocation[0]][self.centraltilelocation[1]].oilquantity <= 0:
             return 0
         else:
             return 250
@@ -262,7 +262,7 @@ class TileGrid:
         elif not tile.can_place_rig() and preview:
             tile.rigpreviewtype = 'invalid'
         elif tile.can_place_rig() and not preview:
-            total += tile.place_rig()
+            total += tile.place_rig(self.grid)
         self.budget -= total
 
     def validate_all(self):
@@ -285,10 +285,14 @@ class TileGrid:
         for row in self.grid:
             for c in row:
                 total -= c.calculate_upkeep()
+        upkeep = total
+        print(f'Upkeep {total}')
         connected_rigs = self.calculate_connected_rigs()
         for rig in connected_rigs:
-            total += rig.calculate_income()
+            total += rig.calculate_income(self.grid)
+        print(f'Income {total-upkeep}')
         self.budget += total
+
         return total
 
     def generate_oil_deposits(self, num_central_tiles=20):
@@ -300,7 +304,7 @@ class TileGrid:
             x = random.randint(0, width-1)
             y = random.randint(0, height-1)
             self.grid[x][y].oiltype = 'central'
-            self.grid[x][y].oilquantity = random.randint(20, 500)
+            self.grid[x][y].oilquantity = random.randint(20, 5000)
 
         # Generate oval-like shapes around each central tile
         for x in range(width):
@@ -339,7 +343,6 @@ class TileGrid:
                 if tile.exportpipe:
                     queue.append(tile)
                     visited[tile.y][tile.x] = True
-                    print(tile.connection)
 
         # BFS to find all connected rigs
         while queue:
@@ -395,7 +398,7 @@ class TileGrid:
             for y in range(min(y_origin, y_dest), max(y_origin, y_dest) + 1):
                 if self.sizey > y >= 0 and self.sizex > x >= 0:
                     if not preview:
-                        if not self.grid[y][x].issurveyed:
+                        if not self.grid[y][x].issurveyed and self.grid[y][x].isowned:
                             self.grid[y][x].issurveyed = True
                             self.budget -= 5  # survey price
                     else:
