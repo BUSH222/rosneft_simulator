@@ -142,14 +142,12 @@ class Button:  # Класс для кнопки
                         self.initialxy[0] //= TILE_SIZE
                         self.initialxy[1] -= map_position[1]
                         self.initialxy[1] //= TILE_SIZE
-                        print(self.initialxy)
                     elif self.toggled and self.initialxy != []:
                         self.finxy = list(pygame.mouse.get_pos())
                         self.finxy[0] -= map_position[0]
                         self.finxy[0] //= TILE_SIZE
                         self.finxy[1] -= map_position[1]
                         self.finxy[1] //= TILE_SIZE  # update with proper coords
-                        print(self.finxy)
                         self.grid.buy_tiles(self.initialxy[0], self.initialxy[1], self.finxy[0], self.finxy[1])
                         self.initialxy = []
                         self.finxy = []
@@ -212,7 +210,7 @@ class Button:  # Класс для кнопки
             self.grid.buy_tiles(self.initialxy[0], self.initialxy[1],
                                 self.finxy[0], self.finxy[1],
                                 preview=True)
-        
+
         if self.toggled and self.initialxy != [] and self.toggledaction == 'survey_land':
             self.grid.clear_previews()
             self.finxy = list(pygame.mouse.get_pos())
@@ -377,12 +375,8 @@ while running:
     if keys[pygame.K_DOWN]:
         map_position = (map_position[0], map_position[1] + map_speed)
     if keys[pygame.K_0]:
-        cnt = 0
-        for g in game.grid:
-            for m in g:
-                if m.buypreview:
-                    cnt += 1
-        print(cnt)
+        g = game.calculate_connected_rigs()
+        print(g)
 
     if 'field2' in globals():  # Отображение карты
         field2.draw(screen)

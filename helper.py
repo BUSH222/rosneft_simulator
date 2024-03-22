@@ -41,6 +41,7 @@ class Tile:
         self.buypreview = False
         self.surveypreview = False
         self.baseprice = 5
+        self.output = 0
 
     def __repr__(self) -> str:
         return f'{self.x}, {self.y}'
@@ -48,7 +49,7 @@ class Tile:
 
     def can_place_pipe(self):
         """Whether or not a pipe can be placed on this segment"""
-        return (not self.hasrig) and (not self.haspipe) and self.isowned and self.issurveyed
+        return (not self.hasrig) and (not self.haspipe)  # and self.isowned and self.issurveyed
 
     def can_place_rig(self):
         """Whether or not a rig can be placed on this segment"""
@@ -76,6 +77,7 @@ class Tile:
         self.haspipe = False
         self.hasrig = True
         self.pipetype = 'basic'
+        self.output = 1
 
     def validate(self, grid, sizex, sizey):
         """Validate if this segment's tile data is in order"""
@@ -232,6 +234,7 @@ class TileGrid:
         tile = self.grid[x][y]
         if delete:
             tile.hasrig = False
+            tile.output = 0
             return True
         if tile.can_place_rig() and preview:
             tile.rigpreviewtype = 'valid'
@@ -239,6 +242,7 @@ class TileGrid:
             tile.rigpreviewtype = 'invalid'
         elif tile.can_place_rig() and not preview:
             tile.hasrig = True
+            tile.output = 1
 
     def validate_all(self):
         """Validate and form connections between every single pipe"""
@@ -295,8 +299,47 @@ class TileGrid:
         self.grid[y_coord][x_coord].haspipe = True
         self.grid[y_coord][x_coord].exportpipe = True
 
-    def calculate_total_profit(self):
-        pass
+    def calculate_connected_rigs(self):
+        total_rigs = 0
+        visited = [[False for _ in range(self.sizex)] for _ in range(self.sizey)]
+        queue = []
+
+        # Find the export pipe and add it to the queue
+        for row in self.grid:
+            for tile in row:
+                if tile.exportpipe:
+                    queue.append(tile)
+                    visited[tile.y][tile.x] = True
+
+        # BFS to find all connected rigs
+        
+        while queue:
+            tile = queue.pop(0)
+            if tile.hasrig:
+                total_rigs += 1
+            if tile.connection:
+                for direction in tile.connection:
+                    if direction == 'd':
+                        if not visited[tile.y+1][tile.x]:
+                            queue.append(self.grid[tile.y+1][tile.x])
+                            visited[tile.y+1][tile.x] = True
+                            print('d')
+                    elif direction == 'l':
+                        if not visited[tile.y][tile.x-1]:
+                            queue.append(self.grid[tile.y][tile.x-1])
+                            visited[tile.y][tile.x-1] = True
+                            print('l')
+                    elif direction == 'r':
+                        if visited[tile.y][tile.x+1]:
+                            queue.append(self.grid[tile.y][tile.x+1])
+                            visited[tile.y][tile.x+1] = True
+                            print('r')
+                    elif direction == 'u':
+                        if not visited[tile.y-1][tile.x]:
+                            queue.append(self.grid[tile.y-1][tile.x])
+                            visited[tile.y-1][tile.x] = True
+                            print('u')
+        return total_rigs
 
     def buy_tiles(self, x_origin, y_origin, x_dest, y_dest, preview=False):
         total_cost = 0
