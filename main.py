@@ -95,11 +95,9 @@ class Button:  # Класс для кнопки
                         self.finxy[0] //= TILE_SIZE
                         self.finxy[1] -= map_position[1]
                         self.finxy[1] //= TILE_SIZE  # update with proper coords
-                        print(self.finxy)
                         self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
                                               self.finxy[1], self.finxy[0],
                                               preview=False, delete=True)
-                        print('doing deleting')
                         self.initialxy = []
                         self.finxy = []
                         self.grid.clear_previews()
@@ -111,14 +109,12 @@ class Button:  # Класс для кнопки
                         self.initialxy[0] //= TILE_SIZE
                         self.initialxy[1] -= map_position[1]
                         self.initialxy[1] //= TILE_SIZE
-                        print(self.initialxy[0], self.initialxy[1])
                     elif self.toggled and self.initialxy != []:
                         self.finxy = list(pygame.mouse.get_pos())
                         self.finxy[0] -= map_position[0]
                         self.finxy[0] //= TILE_SIZE
                         self.finxy[1] -= map_position[1]
                         self.finxy[1] //= TILE_SIZE  # update with proper coords
-                        print(self.finxy)
                         self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
                                               self.finxy[1], self.finxy[0],
                                               preview=False)
@@ -139,7 +135,32 @@ class Button:  # Класс для кнопки
                         self.grid.place_rig(self.pos[1], self.pos[0], preview=False, delete=True)
 
             if self.toggledaction == 'buy_land':
+                if pygame.mouse.get_pressed()[0]:
+                    if self.toggled and self.initialxy == []:
+                        self.initialxy = list(pygame.mouse.get_pos())
+                        self.initialxy[0] -= map_position[0]
+                        self.initialxy[0] //= TILE_SIZE
+                        self.initialxy[1] -= map_position[1]
+                        self.initialxy[1] //= TILE_SIZE
+                        print(self.initialxy)
+                    elif self.toggled and self.initialxy != []:
+                        self.finxy = list(pygame.mouse.get_pos())
+                        self.finxy[0] -= map_position[0]
+                        self.finxy[0] //= TILE_SIZE
+                        self.finxy[1] -= map_position[1]
+                        self.finxy[1] //= TILE_SIZE  # update with proper coords
+                        print(self.finxy)
+                        self.grid.buy_tiles(self.initialxy[0], self.initialxy[1], self.finxy[0], self.finxy[1])
+                        self.initialxy = []
+                        self.finxy = []
+                        self.grid.clear_previews()
                 if pygame.mouse.get_pressed()[2]:
+                    self.initialxy = []
+                    self.finxy = []
+                    self.grid.clear_previews()
+
+            if self.toggledaction == 'survey_land':
+                if pygame.mouse.get_pressed()[0]:
                     if self.toggled and self.initialxy == []:
                         self.initialxy = list(pygame.mouse.get_pos())
                         self.initialxy[0] -= map_position[0]
@@ -152,9 +173,11 @@ class Button:  # Класс для кнопки
                         self.finxy[0] //= TILE_SIZE
                         self.finxy[1] -= map_position[1]
                         self.finxy[1] //= TILE_SIZE  # update with proper coords
-                        print(self.finxy)
-                        self.grid.buy_tiles(self.initialxy[1], self.initialxy[0], self.finxy[1], self.finxy[0])
-                if pygame.mouse.get_pressed()[0]:
+                        self.grid.survey_tiles(self.initialxy[0], self.initialxy[1], self.finxy[0], self.finxy[1])
+                        self.initialxy = []
+                        self.finxy = []
+                        self.grid.clear_previews()
+                if pygame.mouse.get_pressed()[2]:
                     self.initialxy = []
                     self.finxy = []
                     self.grid.clear_previews()
@@ -181,14 +204,28 @@ class Button:  # Класс для кнопки
 
         if self.toggled and self.initialxy != [] and self.toggledaction == 'buy_land':
             self.grid.clear_previews()
+            self.finxy = list(pygame.mouse.get_pos())
             self.finxy[0] -= map_position[0]
             self.finxy[0] //= 10
             self.finxy[1] -= map_position[1]
             self.finxy[1] //= 10
-            self.grid.buy_tiles(self.initialxy[1], self.initialxy[0],
-                                self.finxy[1], self.finxy[0],
+            self.grid.buy_tiles(self.initialxy[0], self.initialxy[1],
+                                self.finxy[0], self.finxy[1],
                                 preview=True)
+        
+        if self.toggled and self.initialxy != [] and self.toggledaction == 'survey_land':
+            self.grid.clear_previews()
+            self.finxy = list(pygame.mouse.get_pos())
+            self.finxy[0] -= map_position[0]
+            self.finxy[0] //= 10
+            self.finxy[1] -= map_position[1]
+            self.finxy[1] //= 10
+            self.grid.survey_tiles(self.initialxy[0], self.initialxy[1],
+                                   self.finxy[0], self.finxy[1],
+                                   preview=True)
 
+    def updatetext(self, text):
+        self.text = text
 
 
 # Класс для поля
@@ -249,7 +286,7 @@ def draw_title(screen, title):  # Функция для отображения �
 action_button1 = Button(window_size[0] - 360, 100, 360, 90, "1.Buy land", (0, 128, 0),
                         lambda: action_button1.toggle(), toggledaction='buy_land', grid=game)
 action_button2 = Button(window_size[0] - 360, 180, 360, 90, "2. Survey", (0, 128, 0),
-                        lambda: action_button2.toggle(), toggledaction='survey', grid=game)
+                        lambda: action_button2.toggle(), toggledaction='survey_land', grid=game)
 action_button3 = Button(window_size[0] - 360, 260, 360, 90, "3. Buld pipe", (0, 128, 0),
                         lambda: action_button3.toggle(), toggledaction='build_pipes', grid=game)
 action_button4 = Button(window_size[0] - 360, 340, 360, 90, "4. Build oil rig", (0, 128, 0),
@@ -339,6 +376,13 @@ while running:
         map_position = (map_position[0], map_position[1] - map_speed)
     if keys[pygame.K_DOWN]:
         map_position = (map_position[0], map_position[1] + map_speed)
+    if keys[pygame.K_0]:
+        cnt = 0
+        for g in game.grid:
+            for m in g:
+                if m.buypreview:
+                    cnt += 1
+        print(cnt)
 
     if 'field2' in globals():  # Отображение карты
         field2.draw(screen)
@@ -372,6 +416,7 @@ while running:
 
     if cnt % 50 == 1:  # change later, temp
         game.validate_all()
+    button2_field3_2.updatetext(str(game.budget)+'$')
     clock.tick(FPS)
     pygame.display.flip()  # Обновление экрана
     cnt += 1

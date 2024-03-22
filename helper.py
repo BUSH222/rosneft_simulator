@@ -1,5 +1,4 @@
 import random
-import numpy as np
 
 
 class Tile:
@@ -41,6 +40,7 @@ class Tile:
         self.rigpreviewtype = None
         self.buypreview = False
         self.surveypreview = False
+        self.baseprice = 5
 
     def __repr__(self) -> str:
         return f'{self.x}, {self.y}'
@@ -48,12 +48,12 @@ class Tile:
 
     def can_place_pipe(self):
         """Whether or not a pipe can be placed on this segment"""
-        return (not self.hasrig) and (not self.haspipe)  # and self.isowned and self.issurveyed
+        return (not self.hasrig) and (not self.haspipe) and self.isowned and self.issurveyed
 
     def can_place_rig(self):
         """Whether or not a rig can be placed on this segment"""
         return (not self.hasrig) and (not self.haspipe)\
-            and self.oiltype is not None  # and self.isowned and self.issurveyed
+            and self.oiltype is not None and self.isowned and self.issurveyed
 
     def place_pipe(self):
         """Place a pipe on the tile"""
@@ -61,6 +61,7 @@ class Tile:
             return False
         self.haspipe = True
         self.pipetype = 'basic'
+        return self.baseprice
 
     def delete_pipe(self):
         """Delete the pipe on the tile"""
@@ -132,10 +133,18 @@ class Tile:
             out[0] = (0, 255, 0)
         elif self.rigpreviewtype == 'invalid':
             out[0] = (255, 0, 0)
-        
-        if self.buypreview:
-            out[0] = (self.price*4-1, self.price*4-1, 0)
 
+        if self.buypreview:
+            if not self.isowned:
+                out[0] = (self.price*4-1, self.price*4-1, 0)
+            else:
+                out[0] = (100, 100, 100)
+
+        if self.surveypreview:
+            if not self.issurveyed:
+                out[0] = (100, 100, 0)
+            else:
+                out[0] = (100, 100, 100)
         return out
 
 
@@ -202,7 +211,6 @@ class TileGrid:
             if not all([tile.can_place_pipe() for tile in potentialpipes]):
                 return False
             for item in potentialpipes:
-                print(item)
                 item.place_pipe()
             return True
         else:
@@ -287,11 +295,6 @@ class TileGrid:
         self.grid[y_coord][x_coord].haspipe = True
         self.grid[y_coord][x_coord].exportpipe = True
 
-    def generate_tile_prices(self):
-        for row in self.grid.grid:
-            for tile in row:
-                tile.price = random.randint(1, 10)
-    
     def calculate_total_profit(self):
         pass
 
@@ -300,25 +303,37 @@ class TileGrid:
 
         for x in range(min(x_origin, x_dest), max(x_origin, x_dest) + 1):
             for y in range(min(y_origin, y_dest), max(y_origin, y_dest) + 1):
-                total_cost += self.grid[y][x].price
+                if self.sizey > y >= 0 and self.sizex > x >= 0:
+                    if not self.grid[y][x].isowned:
+                        total_cost += self.grid[y][x].price
 
         if total_cost > self.budget:
-            print("Not enough budget to buy these tiles.")
             return False
 
         for x in range(min(x_origin, x_dest), max(x_origin, x_dest) + 1):
             for y in range(min(y_origin, y_dest), max(y_origin, y_dest) + 1):
-                if not preview:
-                    self.grid[y][x].isowned = True
-                    self.budget -= self.grid.grid[y][x].price
-                else:
-                    self.grid[y][x].buypreview = True
+                if self.sizey > y >= 0 and self.sizex > x >= 0:
+                    if not preview:
+                        if not self.grid[y][x].isowned:
+                            self.grid[y][x].isowned = True
+                            self.budget -= self.grid[y][x].price
+                    else:
+                        self.grid[y][x].buypreview = True
 
-        print("Tiles bought successfully.")
         return True
 
-    def survey_tiles(self, x_origin, y_origin, x_dest, y_dest):
-        pass
+    def survey_tiles(self, x_origin, y_origin, x_dest, y_dest, preview=False):
+        for x in range(min(x_origin, x_dest), max(x_origin, x_dest) + 1):
+            for y in range(min(y_origin, y_dest), max(y_origin, y_dest) + 1):
+                if self.sizey > y >= 0 and self.sizex > x >= 0:
+                    if not preview:
+                        if not self.grid[y][x].issurveyed:
+                            self.grid[y][x].issurveyed = True
+                            self.budget -= 5  # survey price
+                    else:
+                        self.grid[y][x].surveypreview = True
+
+        return True
 
 
 if __name__ == '__main__':
