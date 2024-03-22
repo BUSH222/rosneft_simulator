@@ -310,14 +310,14 @@ class TileGrid:
                 if tile.exportpipe:
                     queue.append(tile)
                     visited[tile.y][tile.x] = True
+                    print(tile.connections)
 
         # BFS to find all connected rigs
-        
         while queue:
             tile = queue.pop(0)
             if tile.hasrig:
                 total_rigs += 1
-            if tile.connection:
+            if tile.connection and tile.haspipe:
                 for direction in tile.connection:
                     if direction == 'd':
                         if not visited[tile.y+1][tile.x]:
