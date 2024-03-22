@@ -179,6 +179,7 @@ def start_new_game():
     field3_right = Field(width, 0, 1920 // 5, 1920, (222, 184, 135))
     field3_top = Field(1920 - 1820 // 5, 1000 // 10, width, 1020, (222, 184, 135))
     game.place_export_pipe()
+    game.generate_oil_deposits()
     started = True
 
 
@@ -218,6 +219,7 @@ action_button3 = Button(window_size[0] - 360, 260, 360, 90, "3. Buld pipe", (0, 
                         lambda: action_button3.toggle(), toggledaction='build_pipes', grid=game)
 action_button4 = Button(window_size[0] - 360, 340, 360, 90, "4. Build oil rig", (0, 128, 0),
                         lambda: action_button4.toggle(), toggledaction='build_rig', grid=game)
+
 action_buttons = [action_button1, action_button2, action_button3, action_button4]
 
 action_button5 = Button(window_size[0] - 360, 1000, 130, 90, "||", (0, 128, 0), lambda: paused())
@@ -307,6 +309,15 @@ while running:
         field2.draw(screen)
         draw_title(screen, "Map")  # Отображение названия
         screen.blit(map_image, (map_position[0], map_position[1]))
+        for i, x in enumerate(game.grid):
+            for j, y in enumerate(x):
+                rect = pygame.Rect(j*TILE_SIZE+map_position[0], i*TILE_SIZE+map_position[1], TILE_SIZE, TILE_SIZE)
+                color = y.draw()
+
+                if color[0] is not None:
+                    pygame.draw.rect(screen, color[0], rect)
+                if color[1] is not None:
+                    screen.blit(images[color[1]], rect)
     if 'field1' in globals():
         field1.draw(screen)
         button1_field3_1.draw(screen)  # Draw buttons in Field3
@@ -323,18 +334,6 @@ while running:
         action_button5.draw(screen)
         action_button6.draw(screen)
         action_button7.draw(screen)
-
-    for i, x in enumerate(game.grid):
-        for j, y in enumerate(x):
-
-            rect = pygame.Rect(j*TILE_SIZE+map_position[0], i*TILE_SIZE+map_position[1], TILE_SIZE, TILE_SIZE)
-            color = y.draw()
-            if isinstance(color, str) and color != '':
-                screen.blit(images[color], rect)
-            elif color == (0, 0, 0) or color == '':
-                pass
-            elif color != (0, 0, 0):
-                pygame.draw.rect(screen, y.draw(), rect)
 
     if cnt % 50 == 1:  # change later, temp
         game.validate_all()

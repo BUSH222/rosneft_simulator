@@ -99,21 +99,32 @@ class Tile:
             self.pipetype = None
 
     def draw(self):
-        """This function handles the colors of the tile and the icons"""
+        """This function handles the colors of the tile and the icons
+        Returns a list [color (if exists else None), icon (if exists else None)]"""
+        out = [None, None]
+        # oil
+        if self.oiltype == 'central':
+            out[0] = (100, 100, 100)
+        elif self.oiltype == 'simple':
+            out[0] = (200, 200, 200)
+        else:
+            out[0] = None
+
+        # pipes and rigs
         if self.pipepreviewtype == 'valid' or self.rigpreviewtype == 'valid':
-            return (0, 255, 0)
+            out[0] = (0, 255, 0)
         elif self.pipepreviewtype == 'invalid' or self.rigpreviewtype == 'invalid':
-            return (255, 0, 0)
+            out[0] = (255, 0, 0)
         if self.haspipe:
             if self.exportpipe:
-                return (0, 0, 255)
-            if self.connection is None:
-                return 'dlru'
-            return self.connection
+                out[0] = (0, 0, 255)
+            if self.connection is None or self.connection == '':
+                out[1] = 'dlru'
+            else:
+                out[1] = self.connection
         elif self.hasrig:
-            return 'rig'
-        else:
-            return (0, 0, 0)
+            out[1] = 'rig'
+        return out
 
 
 class TileGrid:
@@ -259,13 +270,31 @@ class TileGrid:
     def calculate_total_exports(self):
         pass  # i will do this
 
-    def generate_oil_deposits(self):
-        for row in self.grid:
-            for tile in row:
-                if random.random() < 0.2:
-                    tile.oiltype = 'central'
-                elif random.random() < 0.2:
-                    tile.oiltype = 'simple'
+    def generate_oil_deposits(self, num_central_tiles=20):
+        width = len(self.grid)
+        height = len(self.grid[0])
+
+        # Generate central oil tiles
+        for _ in range(num_central_tiles):
+            x = random.randint(0, width-1)
+            y = random.randint(0, height-1)
+            self.grid[x][y].oiltype = 'central'
+            self.grid[x][y].oilquantity = random.randint(20, 500)
+
+        # Generate oval-like shapes around each central tile
+        for x in range(width):
+            for y in range(height):
+                if self.grid[x][y].oiltype == 'central':
+                    oval_width = random.randint(2, 10)
+                    oval_height = random.randint(2, 10)
+                    for dx in range(-oval_width, oval_width+1):
+                        for dy in range(-oval_height, oval_height+1):
+                            nx = x + dx
+                            ny = y + dy
+                            if (nx >= 0 and nx < width and ny >= 0 and ny < height
+                               and (dx/oval_width)**2 + (dy/oval_height)**2 <= 1):
+                                self.grid[nx][ny].oiltype = 'simple'
+                                self.grid[nx][ny].centraltilelocation = (x, y)
 
     def place_export_pipe(self):
         if random.choice([True, False]):
@@ -301,18 +330,6 @@ class TileGrid:
 
         print("Tiles bought successfully.")
         return True
-
-    def survey_tiles(self, x_origin, y_origin, x_dest, y_dest):
-        pass
-
-
-class Game:
-    def __init__(self, budget) -> None:
-        self.budget = budget
-        self.grid = TileGrid(10, 10)
-        self.exportpipecoords = [5, 0]
-        self.exportpipedirection = 'r'
-        self.exportpipelength = 2
 
     def survey_tiles(self, x_origin, y_origin, x_dest, y_dest):
         pass
