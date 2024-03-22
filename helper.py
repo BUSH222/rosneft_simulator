@@ -41,7 +41,6 @@ class Tile:
         self.buypreview = False
         self.surveypreview = False
         self.baseprice = 5
-        self.output = 0
 
     def __repr__(self) -> str:
         return f'{self.x}, {self.y}'
@@ -64,6 +63,26 @@ class Tile:
         self.pipetype = 'basic'
         return self.baseprice
 
+    def calculate_upkeep(self):
+        """Calculate tile upkeep"""
+        if self.hasrig:
+            return 20
+        elif self.haspipe and self.isowned:
+            return 2
+        elif self.haspipe and not self.isowned:
+            return 5
+        elif self.isowned:
+            return 1
+        else:
+            return 0
+
+    def calculate_income(self):
+        """Calculate tile income, does not check if connected"""
+        if not self.hasrig:
+            return 0
+        else:
+            return 250
+
     def delete_pipe(self):
         """Delete the pipe on the tile"""
         if not self.exportpipe:
@@ -76,8 +95,8 @@ class Tile:
             return False
         self.haspipe = False
         self.hasrig = True
-        self.pipetype = 'basic'
-        self.output = 1
+        self.rig = 'basic'
+        return self.baseprice*10
 
     def validate(self, grid, sizex, sizey):
         """Validate if this segment's tile data is in order"""
@@ -212,8 +231,10 @@ class TileGrid:
         if not preview:
             if not all([tile.can_place_pipe() for tile in potentialpipes]):
                 return False
+            total = 0
             for item in potentialpipes:
-                item.place_pipe()
+                total += item.place_pipe()
+            self.budget -= total
             return True
         else:
             if all([tile.can_place_pipe() for tile in potentialpipes]):
@@ -234,15 +255,15 @@ class TileGrid:
         tile = self.grid[x][y]
         if delete:
             tile.hasrig = False
-            tile.output = 0
             return True
+        total = 0
         if tile.can_place_rig() and preview:
             tile.rigpreviewtype = 'valid'
         elif not tile.can_place_rig() and preview:
             tile.rigpreviewtype = 'invalid'
         elif tile.can_place_rig() and not preview:
-            tile.hasrig = True
-            tile.output = 1
+            total += tile.place_rig()
+        self.budget -= total
 
     def validate_all(self):
         """Validate and form connections between every single pipe"""
@@ -259,8 +280,16 @@ class TileGrid:
                 tile.surveypreview = False
                 tile.buypreview = False
 
-    def calculate_total_exports(self):
-        pass  # i will do this
+    def calculate_net_income(self):
+        total = 0
+        for row in self.grid:
+            for c in row:
+                total -= c.calculate_upkeep()
+        connected_rigs = self.calculate_connected_rigs()
+        for rig in connected_rigs:
+            total += rig.calculate_income()
+        self.budget += total
+        return total
 
     def generate_oil_deposits(self, num_central_tiles=20):
         width = len(self.grid)
@@ -300,7 +329,7 @@ class TileGrid:
         self.grid[y_coord][x_coord].exportpipe = True
 
     def calculate_connected_rigs(self):
-        total_rigs = 0
+        total_rigs = []
         visited = [[False for _ in range(self.sizex)] for _ in range(self.sizey)]
         queue = []
 
@@ -310,35 +339,31 @@ class TileGrid:
                 if tile.exportpipe:
                     queue.append(tile)
                     visited[tile.y][tile.x] = True
-                    print(tile.connections)
+                    print(tile.connection)
 
         # BFS to find all connected rigs
         while queue:
             tile = queue.pop(0)
             if tile.hasrig:
-                total_rigs += 1
+                total_rigs.append(tile)
             if tile.connection and tile.haspipe:
                 for direction in tile.connection:
                     if direction == 'd':
                         if not visited[tile.y+1][tile.x]:
                             queue.append(self.grid[tile.y+1][tile.x])
                             visited[tile.y+1][tile.x] = True
-                            print('d')
                     elif direction == 'l':
                         if not visited[tile.y][tile.x-1]:
                             queue.append(self.grid[tile.y][tile.x-1])
                             visited[tile.y][tile.x-1] = True
-                            print('l')
                     elif direction == 'r':
-                        if visited[tile.y][tile.x+1]:
+                        if not visited[tile.y][tile.x+1]:
                             queue.append(self.grid[tile.y][tile.x+1])
                             visited[tile.y][tile.x+1] = True
-                            print('r')
                     elif direction == 'u':
                         if not visited[tile.y-1][tile.x]:
                             queue.append(self.grid[tile.y-1][tile.x])
                             visited[tile.y-1][tile.x] = True
-                            print('u')
         return total_rigs
 
     def buy_tiles(self, x_origin, y_origin, x_dest, y_dest, preview=False):

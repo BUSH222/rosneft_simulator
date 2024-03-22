@@ -300,7 +300,7 @@ action_button7 = Button(window_size[0] - 120, 1000, 130, 90, "Quit", (0, 128, 0)
 # Создание кнопок для полосы
 button1_field3_1 = Button(0, 10, 160, 85, "%", (0, 128, 0), lambda: print("%"))
 button2_field3_2 = Button(150, 10, 160, 85, "$", (0, 128, 0), lambda: print("$"))
-button3_field3_3 = Button(300, 10, 160, 85, "m/month", (0, 128, 0), lambda: print("m/month"))
+button3_field3_3 = Button(300, 10, 160, 85, "m/month", (0, 128, 0), lambda: print("$/month"))
 
 # Создание кнопок паузы
 continue_button1 = Button(window_size[0] // 2 - 100, window_size[1] // 2 - 80, 200, 80, "Continue", (0, 128, 0),
@@ -347,6 +347,10 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_0:
+                g = game.calculate_connected_rigs()
+                print(g)
 
         start_button.handle_event(event)
         quit_button.handle_event(event)
@@ -374,9 +378,7 @@ while running:
         map_position = (map_position[0], map_position[1] - map_speed)
     if keys[pygame.K_DOWN]:
         map_position = (map_position[0], map_position[1] + map_speed)
-    if keys[pygame.K_0]:
-        g = game.calculate_connected_rigs()
-        print(g)
+
 
     if 'field2' in globals():  # Отображение карты
         field2.draw(screen)
@@ -407,8 +409,10 @@ while running:
         action_button5.draw(screen)
         action_button6.draw(screen)
         action_button7.draw(screen)
-
-    if cnt % 50 == 1:  # change later, temp
+    if cnt % 50 == 0:
+        g = game.calculate_net_income()
+        button3_field3_3.updatetext(str(g)+'$/month')
+    elif cnt % 50 == 1:  # change later, temp
         game.validate_all()
     button2_field3_2.updatetext(str(game.budget)+'$')
     clock.tick(FPS)
