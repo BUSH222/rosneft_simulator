@@ -1,5 +1,4 @@
 import random
-from perlin_noise import PerlinNoise
 import numpy as np
 
 
@@ -19,6 +18,8 @@ class Tile:
         spawntile - purely cosmetic - if the tile is spawn
         pipepreviewtype = 'valid', 'invalid', None
         rigpreviewtype = 'valid', 'invalid', None
+        buypreview - buy preview (True - on)
+        surveypreview - survey preview (True - on)
         """
         self.x = x
         self.y = y
@@ -38,6 +39,8 @@ class Tile:
         self.spawntile = False
         self.pipepreviewtype = None
         self.rigpreviewtype = None
+        self.buypreview = False
+        self.surveypreview = False
 
     def __repr__(self) -> str:
         return f'{self.x}, {self.y}'
@@ -49,7 +52,8 @@ class Tile:
 
     def can_place_rig(self):
         """Whether or not a rig can be placed on this segment"""
-        return (not self.hasrig) and (not self.haspipe)  # and self.isowned and self.issurveyed
+        return (not self.hasrig) and (not self.haspipe)\
+            and self.oiltype is not None  # and self.isowned and self.issurveyed
 
     def place_pipe(self):
         """Place a pipe on the tile"""
@@ -111,10 +115,6 @@ class Tile:
             out[0] = None
 
         # pipes and rigs
-        if self.pipepreviewtype == 'valid' or self.rigpreviewtype == 'valid':
-            out[0] = (0, 255, 0)
-        elif self.pipepreviewtype == 'invalid' or self.rigpreviewtype == 'invalid':
-            out[0] = (255, 0, 0)
         if self.haspipe:
             if self.exportpipe:
                 out[0] = (0, 0, 255)
@@ -124,6 +124,18 @@ class Tile:
                 out[1] = self.connection
         elif self.hasrig:
             out[1] = 'rig'
+        if self.pipepreviewtype == 'valid':
+            out[1] = 'greendlru'
+        elif self.pipepreviewtype == 'invalid':
+            out[1] = 'reddlru'
+        elif self.rigpreviewtype == 'valid':
+            out[0] = (0, 255, 0)
+        elif self.rigpreviewtype == 'invalid':
+            out[0] = (255, 0, 0)
+        
+        if self.buypreview:
+            out[0] = (self.price*4-1, self.price*4-1, 0)
+
         return out
 
 
@@ -133,37 +145,8 @@ class TileGrid:
         self.budget = budget
         self.sizex = sizex
         self.sizey = sizey
-        self.grid = [[Tile(x, y, 0) for x in range(sizex)] for y in range(sizey)]
+        self.grid = [[Tile(x, y, random.randint(16, 64)) for x in range(sizex)] for y in range(sizey)]
         # grid[x][y] - down, right
-
-        self.perlin_scale = 10
-        self.perlin_octaves = 6
-        self.perlin_seed = random.randint(0, 1000)
-        self.centraltilelocation = (self.sizex // 2, self.sizey // 2)
-
-        self.central_oil_probability = 0.2
-        self.simple_oil_probability = 0.2
-        self.oil_radius_ratio = 0.25
-
-    def new_grid(self):
-        """Do this, here you should do some random fuckery with price, it should somewhat resemble perlin noise
-        i guess. Also, you should spread oil randomly"""
-        noise = PerlinNoise(octaves=self.perlin_octaves, seed=self.perlin_seed)
-        for y in range(self.sizey):
-            for x in range(self.sizex):
-                noise_val = noise([x / self.perlin_scale, y / self.perlin_scale])
-                price = int((noise_val + 1) * 5)
-                self.grid[y][x].price = max(1, min(price, 10))
-
-        radius = min(self.sizex, self.sizey) * self.oil_radius_ratio
-
-        for y in range(self.sizey):
-            for x in range(self.sizex):
-                distance = np.linalg.norm(np.array([x, y]) - np.array(self.centraltilelocation))
-                if distance <= radius and random.random() < self.central_oil_probability:
-                    self.grid[y][x].oiltype = 'central'
-                elif self.grid[y][x].oiltype is None and random.random() < self.simple_oil_probability:
-                    self.grid[y][x].oiltype = 'simple'
 
     def place_pipes(self, x_origin, y_origin, x_dest, y_dest, preview, delete=False):
         """Function for placing a pipe in a triangle side shape, where:
@@ -261,11 +244,8 @@ class TileGrid:
             for tile in row:
                 tile.pipepreviewtype = None
                 tile.rigpreviewtype = None
-
-    def generate_everything(self):
-        self.generate_oil_deposits()
-        self.generate_tile_prices()
-        self.place_export_pipe()
+                tile.surveypreview = False
+                tile.buypreview = False
 
     def calculate_total_exports(self):
         pass  # i will do this
@@ -311,13 +291,16 @@ class TileGrid:
         for row in self.grid.grid:
             for tile in row:
                 tile.price = random.randint(1, 10)
+    
+    def calculate_total_profit(self):
+        pass
 
-    def buy_tiles(self, x_origin, y_origin, x_dest, y_dest):
+    def buy_tiles(self, x_origin, y_origin, x_dest, y_dest, preview=False):
         total_cost = 0
 
         for x in range(min(x_origin, x_dest), max(x_origin, x_dest) + 1):
             for y in range(min(y_origin, y_dest), max(y_origin, y_dest) + 1):
-                total_cost += self.grid.grid[y][x].price
+                total_cost += self.grid[y][x].price
 
         if total_cost > self.budget:
             print("Not enough budget to buy these tiles.")
@@ -325,8 +308,11 @@ class TileGrid:
 
         for x in range(min(x_origin, x_dest), max(x_origin, x_dest) + 1):
             for y in range(min(y_origin, y_dest), max(y_origin, y_dest) + 1):
-                self.grid.grid[y][x].isowned = True
-                self.budget -= self.grid.grid[y][x].price
+                if not preview:
+                    self.grid[y][x].isowned = True
+                    self.budget -= self.grid.grid[y][x].price
+                else:
+                    self.grid[y][x].buypreview = True
 
         print("Tiles bought successfully.")
         return True

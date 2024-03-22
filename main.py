@@ -55,6 +55,9 @@ class Button:  # Класс для кнопки
                     button.toggle()
         else:
             self.color = (0, 128, 0)
+        self.initialxy = []
+        self.finxy = []
+        self.pos = []
 
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.rect)
@@ -80,13 +83,13 @@ class Button:  # Класс для кнопки
             if self.toggledaction == 'build_pipes':
 
                 if pygame.mouse.get_pressed()[2]:
-                    if self.toggled and self.initialxy == [] and self.toggledaction == 'build_pipes':
+                    if self.toggled and self.initialxy == []:
                         self.initialxy = list(pygame.mouse.get_pos())
                         self.initialxy[0] -= map_position[0]
                         self.initialxy[0] //= TILE_SIZE
                         self.initialxy[1] -= map_position[1]
                         self.initialxy[1] //= TILE_SIZE
-                    elif self.toggled and self.initialxy != [] and self.toggledaction == 'build_pipes':
+                    elif self.toggled and self.initialxy != []:
                         self.finxy = list(pygame.mouse.get_pos())
                         self.finxy[0] -= map_position[0]
                         self.finxy[0] //= TILE_SIZE
@@ -102,14 +105,14 @@ class Button:  # Класс для кнопки
                         self.grid.clear_previews()
 
                 elif pygame.mouse.get_pressed()[0]:
-                    if self.toggled and self.initialxy == [] and self.toggledaction == 'build_pipes':
+                    if self.toggled and self.initialxy == []:
                         self.initialxy = list(pygame.mouse.get_pos())
                         self.initialxy[0] -= map_position[0]
                         self.initialxy[0] //= TILE_SIZE
                         self.initialxy[1] -= map_position[1]
                         self.initialxy[1] //= TILE_SIZE
                         print(self.initialxy[0], self.initialxy[1])
-                    elif self.toggled and self.initialxy != [] and self.toggledaction == 'build_pipes':
+                    elif self.toggled and self.initialxy != []:
                         self.finxy = list(pygame.mouse.get_pos())
                         self.finxy[0] -= map_position[0]
                         self.finxy[0] //= TILE_SIZE
@@ -135,6 +138,27 @@ class Button:  # Класс для кнопки
                     elif pygame.mouse.get_pressed()[2]:
                         self.grid.place_rig(self.pos[1], self.pos[0], preview=False, delete=True)
 
+            if self.toggledaction == 'buy_land':
+                if pygame.mouse.get_pressed()[2]:
+                    if self.toggled and self.initialxy == []:
+                        self.initialxy = list(pygame.mouse.get_pos())
+                        self.initialxy[0] -= map_position[0]
+                        self.initialxy[0] //= TILE_SIZE
+                        self.initialxy[1] -= map_position[1]
+                        self.initialxy[1] //= TILE_SIZE
+                    elif self.toggled and self.initialxy != []:
+                        self.finxy = list(pygame.mouse.get_pos())
+                        self.finxy[0] -= map_position[0]
+                        self.finxy[0] //= TILE_SIZE
+                        self.finxy[1] -= map_position[1]
+                        self.finxy[1] //= TILE_SIZE  # update with proper coords
+                        print(self.finxy)
+                        self.grid.buy_tiles(self.initialxy[1], self.initialxy[0], self.finxy[1], self.finxy[0])
+                if pygame.mouse.get_pressed()[0]:
+                    self.initialxy = []
+                    self.finxy = []
+                    self.grid.clear_previews()
+
         if self.toggled and self.initialxy != [] and self.toggledaction == 'build_pipes':
             self.grid.clear_previews()
             self.finxy = list(pygame.mouse.get_pos())  # update with proper coords
@@ -154,6 +178,17 @@ class Button:  # Класс для кнопки
             self.pos[1] -= map_position[1]
             self.pos[1] //= 10
             self.grid.place_rig(self.pos[1], self.pos[0], preview=True)
+
+        if self.toggled and self.initialxy != [] and self.toggledaction == 'buy_land':
+            self.grid.clear_previews()
+            self.finxy[0] -= map_position[0]
+            self.finxy[0] //= 10
+            self.finxy[1] -= map_position[1]
+            self.finxy[1] //= 10
+            self.grid.buy_tiles(self.initialxy[1], self.initialxy[0],
+                                self.finxy[1], self.finxy[0],
+                                preview=True)
+
 
 
 # Класс для поля
