@@ -12,7 +12,7 @@ pygame.mixer.init()
 TILE_SIZE = 10
 
 window_size = (1920, 1080)
-screen = pygame.display.set_mode(window_size, pygame.FULLSCREEN)
+screen = pygame.display.set_mode(window_size, pygame.SCALED + pygame.NOFRAME + pygame.FULLSCREEN, vsync=1)
 infoObject = pygame.display.Info()
 pygame.display.set_caption('Rosneft simulator')
 
