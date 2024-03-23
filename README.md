@@ -8,12 +8,14 @@ Welcome to the Rosneft Simulator, a game developed for PyWeek 37 with the theme 
 0) (essential) Install [python 3.8 or above](https://www.python.org/downloads/)
 1) clone the repository or download a .zip file from github.\
 `git clone https://BUSH222/rosneft_simulator`
-2) Install the requirements of the game:\
+2) Install the requirements of the game: (if you are on mac, use python3 instead of python)\
 `python -m pip install -r /path/to/requirements.txt`\
 OR\
 `python -m pip install pygame==2.5.2`
-3) Run main.py using python\
+3) Run main.py using python: (if you are on mac, use python3 instead of python)\
 `python /path/to/main.py`
+
+Tested on MacOS v14.4 and Windows 10/11
 
 ## Gameplay
 
@@ -76,7 +78,7 @@ A: Every single bought tile, placed pipe and placed oil rig require upkeep, espe
 This project was completed by first-year IT and Computer Science students from NUST MISIS.
 - github: **[BUSH222](https://github.com/BUSH222)** discord: **@bush22** | Team lead, Game logic
 - github: **[ShagDasha10](https://github.com/Dashaht)** telegram: **@ShagDasha** | UI/UX Design
-- github: **[ponypedro2005](https://github.com/ponypedro2005)** telegram: **@ponypedro2005** | Assets, QA/QC
+- github: **[ponypedro2005](https://github.com/ponypedro2005)** telegram: **@ponypedro2005** | Asset design, QA/QC
 
 Honourable mention:
 - github **[allhorrorshow](https://github.com/Maximkapp)** telegram: **@Allhorrorshow**
