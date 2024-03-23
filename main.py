@@ -7,14 +7,15 @@ pygame.init()
 
 # Создание окна
 TILE_SIZE = 10
+infoObject = pygame.display.Info()
 window_size = (1920, 1080)
 screen = pygame.display.set_mode(window_size, pygame.FULLSCREEN)
 pygame.display.set_caption('Rosneft simulator')
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
 # Загрузка изображений
-background = pygame.image.load('background.jpg')
-
-map_image = pygame.image.load('map3.jpg')
+background = pygame.image.load(os.path.join(dir_path, 'rosneft.jpg'))
+map_image = pygame.image.load(os.path.join(dir_path, 'map3.jpg'))
 map_position = (0, 115)  # Initial position of the map
 map_speed = 5  # Speed at which the map moves
 
@@ -31,9 +32,10 @@ font1 = pygame.font.Font(None, 20)
 oiltext = []
 
 images = {}
-for f in os.listdir('pipes/'):
+for f in os.listdir(os.path.join(dir_path, 'pipes/')):
     imname = os.path.splitext(f)[0]
-    images[imname] = pygame.transform.scale(pygame.image.load('pipes/'+f).convert_alpha(), (10, 10))
+    images[imname] = pygame.transform.scale(pygame.image.load((os.path.join(dir_path, 'pipes/')+f)).convert_alpha(),
+                                                             (10, 10))
 
 
 class Button:  # Класс для кнопки
@@ -324,6 +326,8 @@ def paused():
     pause_surface = create_pause_surface()
     pause = True
     while pause:
+        imagerect = background.get_rect()
+        screen.blit(background, imagerect)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -334,7 +338,7 @@ def paused():
                 elif quit_button1.rect.collidepoint(event.pos):
                     pygame.quit()
                     sys.exit()
-        pause_surface.fill((241, 238, 140, 128))  # Clear the surface
+        # pause_surface.fill((241, 238, 140, 128))  # Clear the surface
         draw_title(pause_surface, "Paused")
         continue_button1.draw(pause_surface)
         quit_button1.draw(pause_surface)
@@ -347,6 +351,9 @@ running = True
 cnt = 0  # Count fps
 while running:
     screen.fill((189, 183, 107))
+    if not started:
+        imagerect = background.get_rect()
+        screen.blit(background, imagerect)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -371,6 +378,7 @@ while running:
     draw_title(screen, "Rosneft Simulator")  # Отображение названия
     start_button.draw(screen)  # Отображение кнопки "Начать игру"
     quit_button.draw(screen)  # Отображение кнопки "Выход"
+    
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:

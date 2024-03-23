@@ -145,7 +145,7 @@ class Tile:
                 if self.connection is None or self.connection == '':
                     out[1] = 'golddlru'
                 else:
-                    out[1] = 'gold' + self.connection #(0, 0, 255)
+                    out[1] = 'gold' + self.connection  #(0, 0, 255)
             elif self.connection is None or self.connection == '':
                 out[1] = 'dlru'
             else:
