@@ -1,25 +1,31 @@
 import pygame
 import sys
-import pickle
 import helper
 import os
+import webbrowser
+
 pygame.init()
+pygame.font.init()
+pygame.mixer.init()
 
 # Создание окна
 TILE_SIZE = 10
-infoObject = pygame.display.Info()
+
 window_size = (1920, 1080)
 screen = pygame.display.set_mode(window_size, pygame.FULLSCREEN)
+infoObject = pygame.display.Info()
 pygame.display.set_caption('Rosneft simulator')
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-# Загрузка изображений
+# Load assets, initialise variables
 background = pygame.image.load(os.path.join(dir_path, 'rosneft.jpg'))
+background = pygame.transform.scale(background, (infoObject.current_w, infoObject.current_h))
 map_image = pygame.image.load(os.path.join(dir_path, 'map3.jpg'))
+place_effect = pygame.mixer.Sound(os.path.join(dir_path, 'zvuk11.mp3'))
 map_position = (0, 115)  # Initial position of the map
 map_speed = 5  # Speed at which the map moves
 
-game = helper.TileGrid(155, 100, 1000000)
+game = helper.TileGrid(155, 100, 20000)
 
 
 clock = pygame.time.Clock()
@@ -103,6 +109,7 @@ class Button:  # Класс для кнопки
                         self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
                                               self.finxy[1], self.finxy[0],
                                               preview=False, delete=True)
+                        pygame.mixer.Sound.play(place_effect)
                         self.initialxy = []
                         self.finxy = []
                         self.grid.clear_previews()
@@ -120,9 +127,11 @@ class Button:  # Класс для кнопки
                         self.finxy[0] //= TILE_SIZE
                         self.finxy[1] -= map_position[1]
                         self.finxy[1] //= TILE_SIZE  # update with proper coords
-                        self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
+                        out = self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
                                               self.finxy[1], self.finxy[0],
                                               preview=False)
+                        if out:
+                            pygame.mixer.Sound.play(place_effect)
                         self.initialxy = []
                         self.finxy = []
                         self.grid.clear_previews()
@@ -135,9 +144,11 @@ class Button:  # Класс для кнопки
                     self.pos[1] -= map_position[1]
                     self.pos[1] //= TILE_SIZE
                     if pygame.mouse.get_pressed()[0]:
-                        self.grid.place_rig(self.pos[1], self.pos[0], preview=False, delete=False)
+                        out = self.grid.place_rig(self.pos[1], self.pos[0], preview=False, delete=False)
                     elif pygame.mouse.get_pressed()[2]:
-                        self.grid.place_rig(self.pos[1], self.pos[0], preview=False, delete=True)
+                        out = self.grid.place_rig(self.pos[1], self.pos[0], preview=False, delete=True)
+                    if out:
+                        pygame.mixer.Sound.play(place_effect)
 
             if self.toggledaction == 'buy_land':
                 if pygame.mouse.get_pressed()[0]:
@@ -258,19 +269,9 @@ def start_new_game():
     started = True
 
 
-def save_game_state(game_state, file_name):
-    try:
-        with open(file_name, 'wb') as file:
-            pickle.dump(game_state, file)
-            print("Game state saved successfully!")
-    except IOError:
-        print("Error: Unable to save game state.")
+def how_to_play():
+    webbrowser.open('https://github.com/BUSH222/rosneft_simulator/blob/main/README.md')
 
-
-game_state = {
-    'player_x': 400,
-    'player_y': 500
-}
 # Modify the "New Game" button action
 start_button = Button(850, 400, 200, 50, "New game", (0, 128, 0),
                       lambda: (start_new_game()) if not started else False)
@@ -298,8 +299,8 @@ action_button4 = Button(window_size[0] - 360, 340, 360, 90, "4. Build oil rig", 
 action_buttons = [action_button1, action_button2, action_button3, action_button4]
 
 action_button5 = Button(window_size[0] - 360, 1000, 130, 90, "||", (0, 128, 0), lambda: paused())
-action_button6 = Button(window_size[0] - 240, 1000, 130, 90, "SAVE", (0, 128, 0),
-                        lambda: save_game_state(game_state, 'save_game.pickle'))
+action_button6 = Button(window_size[0] - 240, 1000, 130, 90, "HELP", (0, 128, 0),
+                        lambda: how_to_play())
 action_button7 = Button(window_size[0] - 120, 1000, 130, 90, "Quit", (0, 128, 0),
                         lambda: pygame.quit() or sys.exit(), toggledaction='quit')
 # Создание кнопок для полосы
@@ -316,7 +317,7 @@ quit_button1 = Button(window_size[0] // 2 - 100, window_size[1] // 2 + 10, 200, 
 
 # создание поверхности паузы
 def create_pause_surface():
-    pause_surface = pygame.Surface((window_size[0], window_size[1]), pygame.SRCALPHA, 32)
+    pause_surface = pygame.Surface((infoObject.current_w, infoObject.current_h), pygame.SRCALPHA, 32)
     pause_surface.fill((0, 0, 0, 128))  # Fill with semi-transparent black
     return pause_surface
 

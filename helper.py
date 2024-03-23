@@ -274,6 +274,7 @@ class TileGrid:
             tile.rigpreviewtype = 'invalid'
         elif can_place_rig and not preview:
             total += tile.place_rig(self.grid)
+            return True
         self.budget -= total
 
     def validate_all(self):
