@@ -8,7 +8,7 @@ pygame.init()
 pygame.font.init()
 pygame.mixer.init()
 
-# Создание окна
+# Load assets, initialise variables, create window
 TILE_SIZE = 10
 
 window_size = (1920, 1080)
@@ -17,16 +17,16 @@ infoObject = pygame.display.Info()
 pygame.display.set_caption('Rosneft simulator')
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-# Load assets, initialise variables
+
 background = pygame.image.load(os.path.join(dir_path, 'rosneft.jpg'))
 background = pygame.transform.scale(background, (infoObject.current_w, infoObject.current_h))
 map_image = pygame.image.load(os.path.join(dir_path, 'map3.jpg'))
 place_effect = pygame.mixer.Sound(os.path.join(dir_path, 'zvuk11.mp3'))
+
 map_position = (0, 115)  # Initial position of the map
 map_speed = 5  # Speed at which the map moves
 
 game = helper.TileGrid(155, 100, 20000)
-
 
 clock = pygame.time.Clock()
 FPS = 50
@@ -45,6 +45,7 @@ for f in os.listdir(os.path.join(dir_path, 'pipes/')):
 
 
 class Button:  # Класс для кнопки
+    """Class for a button. Anything in the menu is a button"""
     global map_position
 
     def __init__(self, x, y, w, h, text, color, action=None, toggledaction=None, grid=game):
@@ -58,6 +59,7 @@ class Button:  # Класс для кнопки
         self.grid = grid
 
     def toggle(self):
+        """Toggle the button on or off"""
         self.toggled = not self.toggled
         if self.toggled:
             self.color = (0, 200, 0)
@@ -71,6 +73,7 @@ class Button:  # Класс для кнопки
         self.pos = []
 
     def draw(self, screen):
+        """Draw the button on the screen"""
         pygame.draw.rect(screen, self.color, self.rect)
 
         # Draw the border around the button
@@ -84,6 +87,7 @@ class Button:  # Класс для кнопки
         screen.blit(text_surface, text_rect)
 
     def handle_event(self, event):
+        """Handle what happens when a user clicks the button"""
         if event.type == pygame.MOUSEBUTTONDOWN:
             if pygame.mouse.get_pressed()[0] and self.rect.collidepoint(event.pos):
                 if self.action:
@@ -105,7 +109,7 @@ class Button:  # Класс для кнопки
                         self.finxy[0] -= map_position[0]
                         self.finxy[0] //= TILE_SIZE
                         self.finxy[1] -= map_position[1]
-                        self.finxy[1] //= TILE_SIZE  # update with proper coords
+                        self.finxy[1] //= TILE_SIZE
                         self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
                                               self.finxy[1], self.finxy[0],
                                               preview=False, delete=True)
@@ -126,10 +130,10 @@ class Button:  # Класс для кнопки
                         self.finxy[0] -= map_position[0]
                         self.finxy[0] //= TILE_SIZE
                         self.finxy[1] -= map_position[1]
-                        self.finxy[1] //= TILE_SIZE  # update with proper coords
+                        self.finxy[1] //= TILE_SIZE
                         out = self.grid.place_pipes(self.initialxy[1], self.initialxy[0],
-                                              self.finxy[1], self.finxy[0],
-                                              preview=False)
+                                                    self.finxy[1], self.finxy[0],
+                                                    preview=False)
                         if out:
                             pygame.mixer.Sound.play(place_effect)
                         self.initialxy = []
@@ -163,7 +167,7 @@ class Button:  # Класс для кнопки
                         self.finxy[0] -= map_position[0]
                         self.finxy[0] //= TILE_SIZE
                         self.finxy[1] -= map_position[1]
-                        self.finxy[1] //= TILE_SIZE  # update with proper coords
+                        self.finxy[1] //= TILE_SIZE
                         self.grid.buy_tiles(self.initialxy[0], self.initialxy[1], self.finxy[0], self.finxy[1])
                         self.initialxy = []
                         self.finxy = []
@@ -186,7 +190,7 @@ class Button:  # Класс для кнопки
                         self.finxy[0] -= map_position[0]
                         self.finxy[0] //= TILE_SIZE
                         self.finxy[1] -= map_position[1]
-                        self.finxy[1] //= TILE_SIZE  # update with proper coords
+                        self.finxy[1] //= TILE_SIZE
                         self.grid.survey_tiles(self.initialxy[0], self.initialxy[1], self.finxy[0], self.finxy[1])
                         self.initialxy = []
                         self.finxy = []
@@ -198,7 +202,7 @@ class Button:  # Класс для кнопки
 
         if self.toggled and self.initialxy != [] and self.toggledaction == 'build_pipes':
             self.grid.clear_previews()
-            self.finxy = list(pygame.mouse.get_pos())  # update with proper coords
+            self.finxy = list(pygame.mouse.get_pos())
             self.finxy[0] -= map_position[0]
             self.finxy[0] //= 10
             self.finxy[1] -= map_position[1]
@@ -209,7 +213,7 @@ class Button:  # Класс для кнопки
 
         if self.toggled and self.toggledaction == 'build_rig':
             self.grid.clear_previews()
-            self.pos = list(pygame.mouse.get_pos())  # update with proper coords
+            self.pos = list(pygame.mouse.get_pos())
             self.pos[0] -= map_position[0]
             self.pos[0] //= 10
             self.pos[1] -= map_position[1]
@@ -239,11 +243,12 @@ class Button:  # Класс для кнопки
                                    preview=True)
 
     def updatetext(self, text):
+        """Update the text of informational buttons"""
         self.text = text
 
 
-# Класс для поля
 class Field:
+    """Class for a UI Field"""
     def __init__(self, x, y, width, height, color):
         self.rect = pygame.Rect(x, y, width, height)
         self.color = color
@@ -251,10 +256,12 @@ class Field:
         self.surface.fill(color)
 
     def draw(self, screen):
+        """Draw the field"""
         screen.blit(self.surface, (self.rect.x, self.rect.y))
 
 
 def start_new_game():
+    """Prepare everything for a new game"""
     global field1, field2, field3_right, field3_top, started
 
     screen_size = pygame.display.get_surface().get_size()
@@ -270,7 +277,9 @@ def start_new_game():
 
 
 def how_to_play():
+    """Opens the README on github"""
     webbrowser.open('https://github.com/BUSH222/rosneft_simulator/blob/main/README.md')
+
 
 # Modify the "New Game" button action
 start_button = Button(850, 400, 200, 50, "New game", (0, 128, 0),
@@ -279,14 +288,15 @@ quit_button = Button(850, 500, 200, 50, "Exit", (128, 0, 0),
                      lambda: ((pygame.quit() or sys.exit()) if not started else False), toggledaction='quit_new_game')
 
 
-def draw_title(screen, title):  # Функция для отображения названия
+def draw_title(screen, title):
+    """Draw the title"""
     title_font = pygame.font.SysFont('Arial', 50)
     title_surface = title_font.render(title, True, (0, 0, 0))
     title_rect = title_surface.get_rect(center=(window_size[0] // 2, 50))
     screen.blit(title_surface, title_rect)
 
 
-# Создание кнопок действия
+# Action buttons
 action_button1 = Button(window_size[0] - 360, 100, 360, 90, "1.Buy land", (0, 128, 0),
                         lambda: action_button1.toggle(), toggledaction='buy_land', grid=game)
 action_button2 = Button(window_size[0] - 360, 180, 360, 90, "2. Survey", (0, 128, 0),
@@ -303,26 +313,27 @@ action_button6 = Button(window_size[0] - 240, 1000, 130, 90, "HELP", (0, 128, 0)
                         lambda: how_to_play())
 action_button7 = Button(window_size[0] - 120, 1000, 130, 90, "Quit", (0, 128, 0),
                         lambda: pygame.quit() or sys.exit(), toggledaction='quit')
-# Создание кнопок для полосы
+# Top bar buttons
 button1_field3_1 = Button(0, 10, 160, 85, "%", (0, 128, 0), lambda: print("%"))
 button2_field3_2 = Button(150, 10, 160, 85, "$", (0, 128, 0), lambda: print("$"))
 button3_field3_3 = Button(300, 10, 160, 85, "m/month", (0, 128, 0), lambda: print("$/month"))
 
-# Создание кнопок паузы
+# Pause buttons
 continue_button1 = Button(window_size[0] // 2 - 100, window_size[1] // 2 - 80, 200, 80, "Continue", (0, 128, 0),
                           lambda: paused() if pause else False)
 quit_button1 = Button(window_size[0] // 2 - 100, window_size[1] // 2 + 10, 200, 80, "Quit", (128, 0, 0),
                       lambda: ((pygame.quit() or sys.exit()) if pause else False))
 
 
-# создание поверхности паузы
 def create_pause_surface():
+    """Create a surface for the pause menu"""
     pause_surface = pygame.Surface((infoObject.current_w, infoObject.current_h), pygame.SRCALPHA, 32)
-    pause_surface.fill((0, 0, 0, 128))  # Fill with semi-transparent black
+    pause_surface.fill((0, 0, 0, 128))
     return pause_surface
 
 
 def paused():
+    """Handle what happens when the game is paused"""
     global pause
     pause_surface = create_pause_surface()
     pause = True
@@ -347,7 +358,7 @@ def paused():
         pygame.display.flip()
 
 
-# Главный цикл игры
+# MAIN LOOP
 running = True
 cnt = 0  # Count fps
 while running:
@@ -379,7 +390,6 @@ while running:
     draw_title(screen, "Rosneft Simulator")  # Отображение названия
     start_button.draw(screen)  # Отображение кнопки "Начать игру"
     quit_button.draw(screen)  # Отображение кнопки "Выход"
-    
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
@@ -390,7 +400,6 @@ while running:
         map_position = (map_position[0], map_position[1] - map_speed)
     if keys[pygame.K_DOWN]:
         map_position = (map_position[0], map_position[1] + map_speed)
-
 
     if 'field2' in globals():  # Отображение карты
         field2.draw(screen)
@@ -447,7 +456,7 @@ while running:
         text_surface1 = font1.render(text[0], True, (0, 0, 0))
         text_rect1 = text_surface1.get_rect(center=text[1])
         screen.blit(text_surface1, text_rect1)
-    
+
     button2_field3_2.updatetext(str(game.budget)+'$')
     clock.tick(FPS)
     pygame.display.flip()  # Обновление экрана

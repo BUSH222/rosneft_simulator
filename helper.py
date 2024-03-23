@@ -43,12 +43,12 @@ class Tile:
         self.baseprice = 5
 
     def __repr__(self) -> str:
+        """Print a tile, test function"""
         return f'{self.x}, {self.y}'
-        # return str(self.connection)
 
     def can_place_pipe(self):
         """Whether or not a pipe can be placed on this segment"""
-        return (not self.hasrig) and (not self.haspipe)  # and self.isowned and self.issurveyed
+        return (not self.hasrig) and (not self.haspipe)
 
     def can_place_rig(self):
         """Whether or not a rig can be placed on this segment"""
@@ -91,7 +91,7 @@ class Tile:
             self.pipetype = None
 
     def place_rig(self, grid):
-
+        """Place an oil rig, does not check prices"""
         if not self.can_place_rig():
             return False
         self.haspipe = False
@@ -118,9 +118,6 @@ class Tile:
                 if grid[self.y][self.x+1].haspipe or grid[self.y][self.x+1].hasrig:
                     nearbypipes.append('r')
             self.connection = ''.join(sorted(nearbypipes))
-            # for s in grid:
-            #    print(*s)
-            # print(self.x, self.y, self.connection)
         else:
             self.connection = None
             self.pipetype = None
@@ -145,7 +142,7 @@ class Tile:
                 if self.connection is None or self.connection == '':
                     out[1] = 'golddlru'
                 else:
-                    out[1] = 'gold' + self.connection  #(0, 0, 255)
+                    out[1] = 'gold' + self.connection
             elif self.connection is None or self.connection == '':
                 out[1] = 'dlru'
             else:
@@ -293,21 +290,20 @@ class TileGrid:
                 tile.buypreview = False
 
     def calculate_net_income(self):
+        """Calculate the total income of the game"""
         total = 0
         for row in self.grid:
             for c in row:
                 total -= c.calculate_upkeep()
-        upkeep = total
-        print(f'Upkeep {total}')
         connected_rigs = self.calculate_connected_rigs()
         for rig in connected_rigs:
             total += rig.calculate_income(self.grid)
-        print(f'Income {total-upkeep}')
         self.budget += total
 
         return total
 
     def generate_oil_deposits(self, num_central_tiles=20):
+        """Generate ovals of oil randomly on the map"""
         width = len(self.grid)
         height = len(self.grid[0])
         # Generate central oil tiles
@@ -339,23 +335,22 @@ class TileGrid:
                                 self.grid[nx][ny].oiltype = 'simple'
                                 self.grid[nx][ny].centraltilelocation = (x, y)
                     spawnset = True
-    
+
     def count_oil_percentage(self):
+        """Count how much oil is exported from russia"""
         maxoil = 0
         currentoil = 0
         for x in range(self.sizey):
             for y in range(self.sizex):
                 maxoil += self.grid[x][y].originaloilquantity
                 currentoil += self.grid[x][y].oilquantity
-        
-        print(currentoil)
-        print(maxoil)
         if maxoil != 0 and currentoil != 0:
             return round(currentoil/maxoil*100, 2)
         else:
             return 0.00
 
     def place_export_pipe(self):
+        """Generate an export pipe randomly on the bottom or left side"""
         if random.choice([True, False]):
             x_coord = random.randint(0, self.sizex - 1)
             y_coord = self.sizey - 1
@@ -367,6 +362,7 @@ class TileGrid:
         self.grid[y_coord][x_coord].exportpipe = True
 
     def calculate_connected_rigs(self):
+        """Return the rigs connected to the export pipe"""
         total_rigs = []
         visited = [[False for _ in range(self.sizex)] for _ in range(self.sizey)]
         queue = []
@@ -404,6 +400,7 @@ class TileGrid:
         return total_rigs
 
     def buy_tiles(self, x_origin, y_origin, x_dest, y_dest, preview=False):
+        """Buy tiles in a rectangle formation"""
         total_cost = 0
 
         for x in range(min(x_origin, x_dest), max(x_origin, x_dest) + 1):
@@ -428,6 +425,7 @@ class TileGrid:
         return True
 
     def survey_tiles(self, x_origin, y_origin, x_dest, y_dest, preview=False):
+        """Survey tiles in a rectangle formation"""
         for x in range(min(x_origin, x_dest), max(x_origin, x_dest) + 1):
             for y in range(min(y_origin, y_dest), max(y_origin, y_dest) + 1):
                 if self.sizey > y >= 0 and self.sizex > x >= 0:
