@@ -334,8 +334,7 @@ class TileGrid:
                                 if not (nx == x and ny == y):
                                     self.grid[nx][ny].oiltype = 'simple'
                                     self.grid[nx][ny].oilquantity = 0
-                                self.grid[nx][ny].centraltilelocation = (x, y)
-                                
+                                self.grid[nx][ny].centraltilelocation = (x, y)          
                     spawnset = True
 
     def count_oil_percentage(self):
