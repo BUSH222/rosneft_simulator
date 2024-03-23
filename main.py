@@ -387,13 +387,13 @@ while running:
     quit_button.draw(screen)  # Отображение кнопки "Выход"
 
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT]:
-        map_position = (map_position[0] - map_speed, map_position[1])
     if keys[pygame.K_RIGHT]:
+        map_position = (map_position[0] - map_speed, map_position[1])
+    if keys[pygame.K_LEFT]:
         map_position = (map_position[0] + map_speed, map_position[1])
-    if keys[pygame.K_UP]:
-        map_position = (map_position[0], map_position[1] - map_speed)
     if keys[pygame.K_DOWN]:
+        map_position = (map_position[0], map_position[1] - map_speed)
+    if keys[pygame.K_UP]:
         map_position = (map_position[0], map_position[1] + map_speed)
 
     if 'field2' in globals():  # Отображение карты
