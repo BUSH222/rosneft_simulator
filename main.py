@@ -357,6 +357,43 @@ def paused():
         pygame.display.flip()
 
 
+def win(win=True, score=game.budget):
+    pause = True
+    win_surf = create_pause_surface()
+    while pause:
+        imagerect = background.get_rect()
+        screen.blit(background, imagerect)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if quit_button1.rect.collidepoint(event.pos):
+                    pygame.quit()
+                    sys.exit()
+        # pause_surface.fill((241, 238, 140, 128))  # Clear the surface
+        if win:
+            title_font = pygame.font.SysFont('Arial', 50)
+
+            result_surf = title_font.render("You WON!!!", True, (0, 0, 0))
+            res_rect = result_surf.get_rect(center=(window_size[0] // 2, 50))
+            screen.blit(result_surf, res_rect)
+
+            score_surf = title_font.render("final score:", True, (0, 0, 0))
+            score_rect = score_surf.get_rect(center=(window_size[0] // 2, 150))
+            screen.blit(score_surf, score_rect)
+
+            realscore_surf = title_font.render(str(score), True, (0, 0, 0))
+            realscore_rect = realscore_surf.get_rect(center=(window_size[0] // 2, 250))
+            screen.blit(realscore_surf, realscore_rect)
+        else:
+            draw_title(win_surf, 'You lost, try again!')
+
+        quit_button1.draw(win_surf)
+        screen.blit(win_surf, (0, 0))  # Blit the pause surface on the game screen
+        pygame.display.flip()
+
+
 # MAIN LOOP
 running = True
 cnt = 0  # Count fps
@@ -440,16 +477,22 @@ while running:
             centraltile = game.grid[rig.centraltilelocation[0]][rig.centraltilelocation[1]]
             if centraltile not in [i[2] for i in oiltext]:
                 oiltext.append([str(centraltile.oilquantity),
-                                (centraltile.x*10+map_position[0], centraltile.y*10+map_position[1]), centraltile])
+                                (centraltile.x*10, centraltile.y*10), centraltile])
 
             if centraltile.oilquantity > 0:
                 centraltile.oilquantity -= 1
         totalpercentage = game.count_oil_percentage()
         button1_field3_1.updatetext(str(totalpercentage)+'%')
+    elif cnt % 50 == 3:
+        if game.count_oil_percentage() == 0.0 and not pause and started:
+            win(win=True, score=game.budget)
+        if game.budget < -100000:
+            win(win=False, score=0)
+
     # draw oil quantity
     for text in oiltext:
         text_surface1 = font1.render(text[0], True, (0, 0, 0))
-        text_rect1 = text_surface1.get_rect(center=text[1])
+        text_rect1 = text_surface1.get_rect(center=(text[1][0]+map_position[0], text[1][1]+map_position[1]))
         screen.blit(text_surface1, text_rect1)
 
     button2_field3_2.updatetext(str(game.budget)+'$')
