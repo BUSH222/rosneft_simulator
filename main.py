@@ -431,6 +431,8 @@ while running:
 
             if centraltile.oilquantity > 0:
                 centraltile.oilquantity -= 1
+        totalpercentage = game.count_oil_percentage()
+        button1_field3_1.updatetext(str(totalpercentage)+'%')
     # draw oil quantity
     for text in oiltext:
         text_surface1 = font1.render(text[0], True, (0, 0, 0))

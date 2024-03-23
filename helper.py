@@ -52,6 +52,7 @@ class Tile:
 
     def can_place_rig(self):
         """Whether or not a rig can be placed on this segment"""
+
         return (not self.hasrig) and (not self.haspipe)\
             and self.oiltype is not None and self.isowned and self.issurveyed
 
@@ -129,18 +130,23 @@ class Tile:
         Returns a list [color (if exists else None), icon (if exists else None)]"""
         out = [None, None]
         # oil
-        if self.oiltype == 'central':
-            out[0] = (100, 100, 100)
-        elif self.oiltype == 'simple':
-            out[0] = (200, 200, 200)
-        else:
-            out[0] = None
+        if self.issurveyed:
+            if self.oiltype == 'central':
+                out[0] = (100, 100, 100)
+            elif self.oiltype == 'simple':
+                out[0] = (200, 200, 200)
+            else:
+                out[0] = None
 
         # pipes and rigs
         if self.haspipe:
             if self.exportpipe:
-                out[0] = (0, 0, 255)
-            if self.connection is None or self.connection == '':
+                out[0] = (36, 10, 52)
+                if self.connection is None or self.connection == '':
+                    out[1] = 'golddlru'
+                else:
+                    out[1] = 'gold' + self.connection #(0, 0, 255)
+            elif self.connection is None or self.connection == '':
                 out[1] = 'dlru'
             else:
                 out[1] = self.connection
@@ -224,12 +230,15 @@ class TileGrid:
             if (0 <= item[0] < self.sizey) and (0 <= item[1] < self.sizex):
                 potentialpipes.append(self.grid[item[0]][item[1]])
 
+        can_place_pipes = all([tile.can_place_pipe() for tile in potentialpipes])\
+            and sum([tile.baseprice for tile in potentialpipes]) <= self.budget
+
         if delete is True:
             for item in potentialpipes:
                 item.delete_pipe()
             return True
         if not preview:
-            if not all([tile.can_place_pipe() for tile in potentialpipes]):
+            if not can_place_pipes:
                 return False
             total = 0
             for item in potentialpipes:
@@ -237,7 +246,7 @@ class TileGrid:
             self.budget -= total
             return True
         else:
-            if all([tile.can_place_pipe() for tile in potentialpipes]):
+            if can_place_pipes:
                 for item in potentialpipes:
                     item.pipepreviewtype = 'valid'
                 return True
@@ -257,11 +266,13 @@ class TileGrid:
             tile.hasrig = False
             return True
         total = 0
-        if tile.can_place_rig() and preview:
+        can_place_rig = tile.can_place_rig()\
+            and self.budget >= tile.baseprice*10
+        if can_place_rig and preview:
             tile.rigpreviewtype = 'valid'
-        elif not tile.can_place_rig() and preview:
+        elif not can_place_rig and preview:
             tile.rigpreviewtype = 'invalid'
-        elif tile.can_place_rig() and not preview:
+        elif can_place_rig and not preview:
             total += tile.place_rig(self.grid)
         self.budget -= total
 
@@ -298,15 +309,17 @@ class TileGrid:
     def generate_oil_deposits(self, num_central_tiles=20):
         width = len(self.grid)
         height = len(self.grid[0])
-
         # Generate central oil tiles
         for _ in range(num_central_tiles):
             x = random.randint(0, width-1)
             y = random.randint(0, height-1)
             self.grid[x][y].oiltype = 'central'
-            self.grid[x][y].oilquantity = random.randint(20, 5000)
+            oilcount = random.randint(20, 5000)
+            self.grid[x][y].oilquantity = oilcount
+            self.grid[x][y].originaloilquantity = oilcount
 
         # Generate oval-like shapes around each central tile
+        spawnset = False
         for x in range(width):
             for y in range(height):
                 if self.grid[x][y].oiltype == 'central':
@@ -318,8 +331,28 @@ class TileGrid:
                             ny = y + dy
                             if (nx >= 0 and nx < width and ny >= 0 and ny < height
                                and (dx/oval_width)**2 + (dy/oval_height)**2 <= 1):
+                                if not spawnset:
+                                    self.grid[nx][ny].spawntile = True
+                                    self.grid[nx][ny].isowned = True
+                                    self.grid[nx][ny].issurveyed = True
                                 self.grid[nx][ny].oiltype = 'simple'
                                 self.grid[nx][ny].centraltilelocation = (x, y)
+                    spawnset = True
+    
+    def count_oil_percentage(self):
+        maxoil = 0
+        currentoil = 0
+        for x in range(self.sizey):
+            for y in range(self.sizex):
+                maxoil += self.grid[x][y].originaloilquantity
+                currentoil += self.grid[x][y].oilquantity
+        
+        print(currentoil)
+        print(maxoil)
+        if maxoil != 0 and currentoil != 0:
+            return round(currentoil/maxoil*100, 2)
+        else:
+            return 0.00
 
     def place_export_pipe(self):
         if random.choice([True, False]):
