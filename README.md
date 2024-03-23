@@ -2,7 +2,18 @@
 
 ## Description
 
-Welcome to the Rosneft Simulator, a game developed for PyWeek 37 with the theme "tubes". This game is set in Russia and you play as [Rosneft](https://en.wikipedia.org/wiki/Rosneft), a large company responsible for a [significant portion of the country's oil production](https://en.wikipedia.org/wiki/Petroleum_industry_in_Russia). The goal of the game is to export as much oil as possible from Russia and get rich.
+Welcome to the Rosneft Simulator, a game developed for PyWeek 37 with the theme "tubes". This game is set in Russia and you play as [Rosneft](https://en.wikipedia.org/wiki/Rosneft), a large company responsible for a [significant portion of the country's oil production](https://en.wikipedia.org/wiki/Petroleum_industry_in_Russia). The goal of the game is to export and sell all the oil from Russia and get rich.
+
+## How to run the game:
+0) (essential) Install [python 3.8 or above](https://www.python.org/downloads/)
+1) clone the repository or download a .zip file from github.\
+`git clone https://BUSH222/rosneft_simulator`
+2) Install the requirements of the game:\
+`python -m pip install -r /path/to/requirements.txt`\
+OR\
+`python -m pip install pygame==2.5.2`
+3) Run main.py using python\
+`python /path/to/main.py`
 
 ## Gameplay
 
@@ -16,9 +27,9 @@ As a player, you have four options (right menu):
 4. **Build Oil Rig**: Build an oil rig to start drilling for oil.
 
 At the top there are information panels:
-1. Oil percentage - how much oil Russia still has left.
-2. Budget - how much money your company still has
-3. Net income - how much money your company is making.
+1. **Oil percentage** - how much oil Russia still has left.
+2. **Budget** - how much money your company still has
+3. **Net income** - how much money your company is making.
 
 Every placed object and bought land require upkeep. Every action costs some money. Oil reservoirs have a certain amount of oil in them and they run out over time.
 
@@ -40,6 +51,35 @@ Here's a quick start guide to playing the game:
 5. Repeat until the percentage of oil at the top left (the total oil Russia has left) hits 0!
 
 Remember, every action costs money and every object and bought land require upkeep, so manage your resources wisely!
+
+## Common questions (Q&A)
+> Q: I started the game, but cannot build anything, why??\
+A: At the start of the game, before the player bought anything the player can only build rigs on the already discovered oil (given at the start, look out for gray tiles). 
+
+> Q: What to connect my rigs to? Where is the export pipe?\
+A: You should connect your rigs with pipes to the export pipe. The export pipe is a yellow pipe on a black tile somewhere at the bottom or left of the map (hint: use the arrow keys to move the map around)
+
+> Q: How to buy and survey tiles?\
+A: You can buy and survey tiles by selecting **Buy land** or **Survey** from the menu on the right. When one of them is selected, click one tile, then a preview should appear. Then, select a second tile and a square will be bought.
+Here's an example ![Alt Text](/readme-pics/buy_land.gif)
+
+> Q: How to view bought and surveyed tiles?\
+A: To avoid clutter on the map, we decided that you will be able to see bought tiles only when enter buy land or survey mode. So, enter buy or survey mode and select a large square around where you want to see the bought land. The bought land will be gray, whereas the non-bought will be a shade of yellow (depending on its price.) Same for the surveyed land, but the colors will be a bit different.
+
+> Q: How to demolish/destroy pipes and rigs?\
+A: To demolish pipes, press **Build pipes** from the right menu and right click the 2 points. A pipe preview will appear. If you use right click instead of left click, the pipes in the path will be demolished. Same is true for rigs.
+
+> Q: I am negative on money, what do I do??\
+A: Every single bought tile, placed pipe and placed oil rig require upkeep, especially the oil rigs. If you are low on money, try to demolish the rigs to reduce your upkeep. This should get you out of debt.
+
+## Team members
+This project was completed by first-year IT and Computer Science students from NUST MISIS.
+- github: **[BUSH222](https://github.com/BUSH222)** discord: **@bush22** | Team lead, Game logic
+- github: **[ShagDasha10](https://github.com/Dashaht)** telegram: **@ShagDasha** | UI/UX Design
+- github: **[ponypedro2005](https://github.com/ponypedro2005)** telegram: **@ponypedro2005** | Assets, QA/QC
+
+Honourable mention:
+- github **[allhorrorshow](https://github.com/Maximkapp)** telegram: **@Allhorrorshow**
 
 ## Conclusion
 
