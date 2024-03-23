@@ -122,18 +122,17 @@ class Tile:
             self.connection = None
             self.pipetype = None
 
-    def draw(self):
+    def draw(self, grid):
         """This function handles the colors of the tile and the icons
         Returns a list [color (if exists else None), icon (if exists else None)]"""
         out = [None, None]
         # oil
         if self.issurveyed:
-            if self.oiltype == 'central':
-                out[0] = (100, 100, 100)
-            elif self.oiltype == 'simple':
-                out[0] = (200, 200, 200)
-            else:
-                out[0] = None
+            if grid.grid[self.centraltilelocation[0]][self.centraltilelocation[1]].oilquantity > 0:
+                if self.oiltype == 'simple' or self.oiltype == 'central':
+                    out[0] = (200, 200, 200)
+                else:
+                    out[0] = None
 
         # pipes and rigs
         if self.haspipe:
@@ -332,8 +331,11 @@ class TileGrid:
                                     self.grid[nx][ny].spawntile = True
                                     self.grid[nx][ny].isowned = True
                                     self.grid[nx][ny].issurveyed = True
-                                self.grid[nx][ny].oiltype = 'simple'
+                                if not (nx == x and ny == y):
+                                    self.grid[nx][ny].oiltype = 'simple'
+                                    self.grid[nx][ny].oilquantity = 0
                                 self.grid[nx][ny].centraltilelocation = (x, y)
+                                
                     spawnset = True
 
     def count_oil_percentage(self):
@@ -342,8 +344,9 @@ class TileGrid:
         currentoil = 0
         for x in range(self.sizey):
             for y in range(self.sizex):
-                maxoil += self.grid[x][y].originaloilquantity
-                currentoil += self.grid[x][y].oilquantity
+                if self.grid[x][y].oiltype == 'central':
+                    maxoil += self.grid[x][y].originaloilquantity
+                    currentoil += self.grid[x][y].oilquantity
         if maxoil != 0 and currentoil != 0:
             return round(currentoil/maxoil*100, 2)
         else:

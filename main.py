@@ -403,7 +403,7 @@ while running:
         for i, x in enumerate(game.grid):
             for j, y in enumerate(x):
                 rect = pygame.Rect(j*TILE_SIZE+map_position[0], i*TILE_SIZE+map_position[1], TILE_SIZE, TILE_SIZE)
-                color = y.draw()
+                color = y.draw(grid=game)
 
                 if color[0] is not None:
                     pygame.draw.rect(screen, color[0], rect)
