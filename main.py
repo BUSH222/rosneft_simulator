@@ -91,7 +91,6 @@ class Button:  # Класс для кнопки
         if event.type == pygame.MOUSEBUTTONDOWN:
             if pygame.mouse.get_pressed()[0] and self.rect.collidepoint(event.pos):
                 if self.action:
-                    print(f'toggled {self.toggledaction}')
                     self.action()
                     return
 
@@ -314,9 +313,9 @@ action_button6 = Button(window_size[0] - 240, 1000, 130, 90, "HELP", (0, 128, 0)
 action_button7 = Button(window_size[0] - 120, 1000, 130, 90, "Quit", (0, 128, 0),
                         lambda: pygame.quit() or sys.exit(), toggledaction='quit')
 # Top bar buttons
-button1_field3_1 = Button(0, 10, 160, 85, "%", (0, 128, 0), lambda: print("%"))
-button2_field3_2 = Button(150, 10, 160, 85, "$", (0, 128, 0), lambda: print("$"))
-button3_field3_3 = Button(300, 10, 160, 85, "m/month", (0, 128, 0), lambda: print("$/month"))
+button1_field3_1 = Button(0, 10, 160, 85, "%", (0, 128, 0), lambda: None)
+button2_field3_2 = Button(150, 10, 160, 85, "$", (0, 128, 0), lambda: None)
+button3_field3_3 = Button(300, 10, 160, 85, "m/month", (0, 128, 0), lambda: None)
 
 # Pause buttons
 continue_button1 = Button(window_size[0] // 2 - 100, window_size[1] // 2 - 80, 200, 80, "Continue", (0, 128, 0),
@@ -369,10 +368,6 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_0:
-                g = game.calculate_connected_rigs()
-                print(g)
 
         start_button.handle_event(event)
         quit_button.handle_event(event)
