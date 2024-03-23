@@ -1,21 +1,25 @@
 # Rosneft Simulator
+[MIT License](LICENSE)
 
 ## Description
 
 Welcome to the Rosneft Simulator, a game developed for PyWeek 37 with the theme "tubes". This game is set in Russia and you play as [Rosneft](https://en.wikipedia.org/wiki/Rosneft), a large company responsible for a [significant portion of the country's oil production](https://en.wikipedia.org/wiki/Petroleum_industry_in_Russia). The goal of the game is to export and sell all the oil from Russia and get rich.
 
 ## How to run the game:
+The game needs pygame and python to run.
+
 0) (essential) Install [python 3.8 or above](https://www.python.org/downloads/)
 1) clone the repository or download a .zip file from github.\
 `git clone https://BUSH222/rosneft_simulator`
-2) Install the requirements of the game: (if you are on mac, use python3 instead of python)\
+2) Install the requirements of the game: (if you are on mac, use python3 instead of python, some windows versions use py instead of python)\
 `python -m pip install -r /path/to/requirements.txt`\
 OR\
 `python -m pip install pygame==2.5.2`
 3) Run main.py using python: (if you are on mac, use python3 instead of python)\
 `python /path/to/main.py`
 
-Tested on MacOS v14.4 and Windows 10/11
+Tested on MacOS v14.4 and Windows 10/11.\
+It is preferrable to run this on a machine with a display aspect ratio of 16:9.
 
 ## Gameplay
 
